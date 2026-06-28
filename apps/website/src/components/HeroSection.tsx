@@ -295,6 +295,15 @@ export function HeroSection() {
   const [hue, setHue] = useState(50);
   const [intensity, setIntensity] = useState(0.6);
 
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const root = document.documentElement;
+      root.style.setProperty("--brand-accent", `${hue} 95.8% 53.1%`);
+      root.style.setProperty("--brand-accent-light", `${hue} 97.8% 63.5%`);
+      root.style.setProperty("--brand-accent-dark", `${hue} 93.3% 47.1%`);
+    }
+  }, [hue]);
+
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -369,7 +378,7 @@ export function HeroSection() {
           variants={itemVariants}
           initial="hidden"
           animate="visible"
-          className="hero-brush-font text-7xl sm:text-[100px] md:text-[156px] uppercase leading-none select-none bg-gradient-to-r from-yellow-400 via-yellow-200 to-white bg-clip-text text-transparent drop-shadow-[0_0_40px_rgba(250,204,21,0.35)] w-full py-4"
+          className="hero-brush-font text-7xl sm:text-[100px] md:text-[156px] uppercase leading-none select-none bg-gradient-to-r from-yellow-400 to-white bg-clip-text text-transparent drop-shadow-[0_0_40px_rgba(250,204,21,0.35)] w-full py-4"
         >
           Maximus Fitness
         </motion.h1>

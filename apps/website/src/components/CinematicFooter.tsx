@@ -29,11 +29,11 @@ const STYLES = `
   --pill-inset-shadow: rgba(0, 0, 0, 0.8);
   --pill-border: rgba(255, 255, 255, 0.06);
   
-  --pill-bg-1-hover: rgba(250, 204, 21, 0.05);
-  --pill-bg-2-hover: rgba(250, 204, 21, 0.02);
-  --pill-border-hover: rgba(250, 204, 21, 0.3);
-  --pill-shadow-hover: rgba(250, 204, 21, 0.05);
-  --pill-highlight-hover: rgba(250, 204, 21, 0.1);
+  --pill-bg-1-hover: hsl(var(--brand-accent) / 0.05);
+  --pill-bg-2-hover: hsl(var(--brand-accent) / 0.02);
+  --pill-border-hover: hsl(var(--brand-accent) / 0.3);
+  --pill-shadow-hover: hsl(var(--brand-accent) / 0.05);
+  --pill-highlight-hover: hsl(var(--brand-accent) / 0.1);
 }
 
 @keyframes footer-breathe {
@@ -47,8 +47,8 @@ const STYLES = `
 }
 
 @keyframes footer-heartbeat {
-  0%, 100% { transform: scale(1); filter: drop-shadow(0 0 5px rgba(250, 204, 21, 0.3)); }
-  15%, 45% { transform: scale(1.15); filter: drop-shadow(0 0 10px rgba(250, 204, 21, 0.6)); }
+  0%, 100% { transform: scale(1); filter: drop-shadow(0 0 5px hsl(var(--brand-accent) / 0.3)); }
+  15%, 45% { transform: scale(1.15); filter: drop-shadow(0 0 10px hsl(var(--brand-accent) / 0.6)); }
   30% { transform: scale(1); }
 }
 
@@ -78,7 +78,7 @@ const STYLES = `
 .footer-aurora {
   background: radial-gradient(
     circle at 50% 50%, 
-    rgba(250, 204, 21, 0.08) 0%, 
+    hsl(var(--brand-accent) / 0.08) 0%, 
     rgba(24, 24, 27, 0.05) 45%, 
     transparent 70%
   );
@@ -113,7 +113,7 @@ const STYLES = `
   font-weight: 900;
   letter-spacing: -0.05em;
   color: transparent;
-  -webkit-text-stroke: 2px rgba(250, 204, 21, 0.12);
+  -webkit-text-stroke: 2px hsl(var(--brand-accent) / 0.12);
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.08) 0%, transparent 70%);
   -webkit-background-clip: text;
   background-clip: text;
@@ -315,42 +315,54 @@ export function CinematicFooter() {
           </div>
 
           {/* 2. Main Center Content */}
-          <div className="relative z-10 flex flex-1 flex-col items-center justify-center px-6 mt-16 md:mt-20 w-full max-w-5xl mx-auto">
-            <h2
-              ref={headingRef}
-              className="text-4xl sm:text-6xl md:text-8xl font-black footer-text-glow tracking-tighter mb-6 md:mb-12 text-center uppercase"
-            >
-              Ready to evolve?
-            </h2>
+          <div className="relative z-10 flex flex-1 flex-col lg:flex-row items-center justify-center gap-10 lg:gap-16 px-6 mt-16 md:mt-20 w-full max-w-5xl mx-auto">
+            {/* Left side: Logo */}
+            <div className="w-auto h-24 lg:h-[240px] flex-shrink-0 flex items-center justify-center">
+              <img
+                src="/logo.png"
+                alt="Maximus Gym Logo"
+                className="h-full w-auto object-contain brightness-100 hover:scale-105 transition-transform duration-500"
+              />
+            </div>
 
-            {/* Interactive Magnetic Pills Layout */}
-            <div ref={linksRef} className="flex flex-col items-center gap-4 md:gap-6 w-full">
-              {/* App Store / Portal Links */}
-              <div className="flex flex-wrap justify-center gap-3 md:gap-4 w-full">
-                <MagneticButton as="a" href="http://localhost:3002" target="_blank" className="footer-glass-pill px-5 py-3.5 md:px-8 md:py-4.5 rounded-full text-zinc-100 font-black text-[10px] md:text-xs md:text-sm uppercase tracking-widest flex items-center gap-3 group">
-                  <Dumbbell className="w-4 h-4 text-yellow-400 group-hover:rotate-45 transition-transform" />
-                  Member Portal
-                </MagneticButton>
-                
-                <MagneticButton as="a" href="http://localhost:3001" target="_blank" className="footer-glass-pill px-5 py-3.5 md:px-8 md:py-4.5 rounded-full text-zinc-100 font-black text-[10px] md:text-xs md:text-sm uppercase tracking-widest flex items-center gap-3 group">
-                  <svg className="w-4 h-4 text-yellow-400 group-hover:scale-110 transition-transform" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <rect x="3" y="3" width="18" height="18" rx="2" />
-                    <path d="M9 17V9l7 4-7 4z" />
-                  </svg>
-                  Staff Portal
-                </MagneticButton>
+            {/* Right side: Text and buttons */}
+            <div className="flex flex-col items-center lg:items-start text-center lg:text-left gap-6 max-w-2xl">
+              <h2
+                ref={headingRef}
+                className="text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-black footer-text-glow tracking-tighter uppercase leading-none"
+              >
+                Ready to evolve?
+              </h2>
 
-                <MagneticButton as="a" href="#contact" className="footer-glass-pill px-5 py-3.5 md:px-8 md:py-4.5 rounded-full text-white bg-yellow-400 font-black text-[10px] md:text-xs md:text-sm uppercase tracking-widest flex items-center gap-3 hover:bg-yellow-300">
-                  Claim Free Pass
-                </MagneticButton>
-              </div>
+              {/* Interactive Magnetic Pills Layout */}
+              <div ref={linksRef} className="flex flex-col items-center lg:items-start gap-4 md:gap-5 w-full">
+                {/* App Store / Portal Links */}
+                <div className="flex flex-wrap justify-center lg:justify-start gap-3 md:gap-4 w-full">
+                  <MagneticButton as="a" href="http://localhost:3002" target="_blank" className="footer-glass-pill px-5 py-3.5 md:px-8 md:py-4.5 rounded-full text-zinc-100 font-black text-[10px] md:text-xs md:text-sm uppercase tracking-widest flex items-center gap-3 group">
+                    <Dumbbell className="w-4 h-4 text-yellow-400 group-hover:rotate-45 transition-transform" />
+                    Member Portal
+                  </MagneticButton>
+                  
+                  <MagneticButton as="a" href="http://localhost:3001" target="_blank" className="footer-glass-pill px-5 py-3.5 md:px-8 md:py-4.5 rounded-full text-zinc-100 font-black text-[10px] md:text-xs md:text-sm uppercase tracking-widest flex items-center gap-3 group">
+                    <svg className="w-4 h-4 text-yellow-400 group-hover:scale-110 transition-transform" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <rect x="3" y="3" width="18" height="18" rx="2" />
+                      <path d="M9 17V9l7 4-7 4z" />
+                    </svg>
+                    Staff Portal
+                  </MagneticButton>
 
-              {/* Secondary Links */}
-              <div className="flex flex-wrap justify-center gap-3 md:gap-6 w-full mt-2">
-                <a href="#about" className="text-zinc-500 hover:text-white transition text-xs font-bold uppercase tracking-wider">About</a>
-                <a href="#programs" className="text-zinc-500 hover:text-white transition text-xs font-bold uppercase tracking-wider">Programs</a>
-                <a href="#plans" className="text-zinc-500 hover:text-white transition text-xs font-bold uppercase tracking-wider">Plans</a>
-                <a href="#bmi" className="text-zinc-500 hover:text-white transition text-xs font-bold uppercase tracking-wider">BMI Calculator</a>
+                  <MagneticButton as="a" href="#contact" className="footer-glass-pill px-5 py-3.5 md:px-8 md:py-4.5 rounded-full text-white bg-yellow-400 font-black text-[10px] md:text-xs md:text-sm uppercase tracking-widest flex items-center gap-3 hover:bg-yellow-300">
+                    Claim Free Pass
+                  </MagneticButton>
+                </div>
+
+                {/* Secondary Links */}
+                <div className="flex flex-wrap justify-center lg:justify-start gap-3 md:gap-6 w-full mt-1">
+                  <a href="#about" className="text-zinc-500 hover:text-white transition text-xs font-bold uppercase tracking-wider">About</a>
+                  <a href="#programs" className="text-zinc-500 hover:text-white transition text-xs font-bold uppercase tracking-wider">Programs</a>
+                  <a href="#plans" className="text-zinc-500 hover:text-white transition text-xs font-bold uppercase tracking-wider">Plans</a>
+                  <a href="#bmi" className="text-zinc-500 hover:text-white transition text-xs font-bold uppercase tracking-wider">BMI Calculator</a>
+                </div>
               </div>
             </div>
           </div>

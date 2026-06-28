@@ -385,7 +385,7 @@ export default function MarketingPage() {
                   <span className="text-2xl md:text-3xl font-black uppercase tracking-wider text-zinc-700 italic hover:text-yellow-400 transition-colors duration-300">
                     {phrase}
                   </span>
-                  <div className="w-2 h-2 rounded-full bg-yellow-400 flex-shrink-0 animate-pulse shadow-[0_0_8px_#facc15]" />
+                  <div className="w-2 h-2 rounded-full bg-yellow-400 flex-shrink-0 animate-pulse shadow-yellow-400/50 shadow-md" />
                 </div>
               ))}
             </div>
@@ -401,7 +401,7 @@ export default function MarketingPage() {
         <div className="max-w-7xl mx-auto px-6 space-y-16">
           <div className="text-center space-y-4">
             <span className="text-xs font-black uppercase tracking-widest text-yellow-400">Ground Zero Facility</span>
-            <h2 className="grindy-brush text-[40px] md:text-[56px] leading-tight tracking-wide bg-clip-text text-transparent bg-gradient-to-r from-yellow-400 via-yellow-200 to-white uppercase pb-1">
+            <h2 className="grindy-brush text-[40px] md:text-[56px] leading-tight tracking-wide bg-clip-text text-transparent bg-gradient-to-r from-yellow-400 to-white uppercase pb-1">
               Train in the Zone
             </h2>
             <p className="text-zinc-400 max-w-xl mx-auto text-sm">Peek inside our premium training setups built to accelerate physical adaptations.</p>
@@ -440,7 +440,7 @@ export default function MarketingPage() {
         <div className="max-w-7xl mx-auto px-6 space-y-16 relative z-10">
           <div className="text-center space-y-3">
             <span className="text-xs font-black uppercase tracking-widest text-yellow-400">Membership Options</span>
-            <h2 className="grindy-brush text-[40px] md:text-[56px] leading-tight tracking-wide bg-clip-text text-transparent bg-gradient-to-r from-yellow-400 via-yellow-200 to-white uppercase pb-1">
+            <h2 className="grindy-brush text-[40px] md:text-[56px] leading-tight tracking-wide bg-clip-text text-transparent bg-gradient-to-r from-yellow-400 to-white uppercase pb-1">
               Join Our Membership
             </h2>
             <p className="text-[14px] md:text-[16px] text-zinc-400 max-w-2xl mx-auto">
@@ -574,7 +574,7 @@ export default function MarketingPage() {
         <div className="max-w-6xl mx-auto px-6 relative z-10 space-y-12">
           <div className="text-center space-y-3">
             <span className="text-xs font-black uppercase tracking-widest text-yellow-400">Body Mass Index</span>
-            <h2 className="grindy-brush text-[40px] md:text-[56px] leading-tight tracking-wide bg-clip-text text-transparent bg-gradient-to-r from-yellow-400 via-yellow-200 to-white uppercase pb-1">
+            <h2 className="grindy-brush text-[40px] md:text-[56px] leading-tight tracking-wide bg-clip-text text-transparent bg-gradient-to-r from-yellow-400 to-white uppercase pb-1">
               BMI Calculator
             </h2>
             <p className="text-[14px] md:text-[16px] text-zinc-400 max-w-2xl mx-auto">
@@ -590,7 +590,7 @@ export default function MarketingPage() {
       <section className="py-24 border-t border-zinc-950">
         <div className="max-w-3xl mx-auto px-6 space-y-12">
           <div className="text-center">
-            <h2 className="grindy-brush text-[32px] md:text-[44px] leading-tight tracking-wide bg-clip-text text-transparent bg-gradient-to-r from-yellow-400 via-yellow-200 to-white uppercase pb-1">
+            <h2 className="grindy-brush text-[32px] md:text-[44px] leading-tight tracking-wide bg-clip-text text-transparent bg-gradient-to-r from-yellow-400 to-white uppercase pb-1">
               FAQs
             </h2>
           </div>
@@ -639,7 +639,7 @@ export default function MarketingPage() {
         <div className="max-w-6xl mx-auto px-6 space-y-12 relative z-10">
           <div className="text-center space-y-3">
             <span className="text-xs font-black uppercase tracking-widest text-yellow-400">Brotherhood Reviews</span>
-            <h2 className="grindy-brush text-[40px] md:text-[56px] leading-tight tracking-wide bg-clip-text text-transparent bg-gradient-to-r from-yellow-400 via-yellow-200 to-white uppercase pb-1 mt-2">
+            <h2 className="grindy-brush text-[40px] md:text-[56px] leading-tight tracking-wide bg-clip-text text-transparent bg-gradient-to-r from-yellow-400 to-white uppercase pb-1 mt-2">
               Grit & Adaptation
             </h2>
             <p className="text-[14px] md:text-[16px] text-zinc-400 max-w-2xl mx-auto font-sans">
@@ -688,7 +688,7 @@ export default function MarketingPage() {
                   <div className="w-1.5 h-1.5 bg-yellow-400 rounded-full animate-pulse" />
                   <span>SECURE TRANSMISSION NODE</span>
                 </h2>
-                <h1 className="grindy-brush text-[32px] md:text-[46px] leading-tight tracking-wide bg-clip-text text-transparent bg-gradient-to-r from-yellow-400 via-yellow-200 to-white uppercase pb-1 mt-3">
+                <h1 className="grindy-brush text-[32px] md:text-[46px] leading-tight tracking-wide bg-clip-text text-transparent bg-gradient-to-r from-yellow-400 to-white uppercase pb-1 mt-3">
                   Commence Transformation
                 </h1>
                 <p className="text-zinc-400 text-sm mt-2 leading-relaxed">

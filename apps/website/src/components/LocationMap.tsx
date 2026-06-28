@@ -91,7 +91,7 @@ export function LocationMap() {
     <section id="location" className="py-24 bg-black border-t border-zinc-950 relative overflow-hidden">
       <div className="max-w-6xl mx-auto px-6 text-center space-y-3 mb-12 relative z-10">
         <span className="text-xs font-black uppercase tracking-widest text-yellow-400">Find the Basezone</span>
-        <h2 className="grindy-brush text-[40px] md:text-[56px] leading-tight tracking-wide bg-clip-text text-transparent bg-gradient-to-r from-yellow-400 via-yellow-200 to-white uppercase pb-1">
+        <h2 className="grindy-brush text-[40px] md:text-[56px] leading-tight tracking-wide bg-clip-text text-transparent bg-gradient-to-r from-yellow-400 to-white uppercase pb-1">
           Our Location
         </h2>
         <p className="text-[14px] md:text-[16px] text-zinc-400 max-w-2xl mx-auto">

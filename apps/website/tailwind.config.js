@@ -11,6 +11,11 @@ module.exports = {
       colors: {
         background: "var(--background)",
         foreground: "var(--foreground)",
+        yellow: {
+          300: "hsl(var(--brand-accent-light) / <alpha-value>)",
+          400: "hsl(var(--brand-accent) / <alpha-value>)",
+          500: "hsl(var(--brand-accent-dark) / <alpha-value>)",
+        }
       },
     },
   },

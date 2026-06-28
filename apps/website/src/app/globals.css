@@ -17,6 +17,9 @@
 :root {
   --background: #0a0a0a;
   --foreground: #ededed;
+  --brand-accent: 48 95.8% 53.1%;
+  --brand-accent-light: 50 97.8% 63.5%;
+  --brand-accent-dark: 45 93.3% 47.1%;
 }
 
 body {

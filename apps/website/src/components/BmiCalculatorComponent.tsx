@@ -248,7 +248,7 @@ export function BmiCalculatorComponent() {
                   initial={{ left: 0 }}
                   animate={{ left: `${Math.min(100, Math.max(0, ((bmiResult - 15) / 25) * 100))}%` }}
                   transition={{ type: "spring", stiffness: 60, damping: 15 }}
-                  className="absolute top-0 bottom-0 w-1.5 bg-yellow-400 shadow-[0_0_8px_#facc15] -ml-0.5 rounded-full"
+                  className="absolute top-0 bottom-0 w-1.5 bg-yellow-400 shadow-yellow-400/50 shadow-md -ml-0.5 rounded-full"
                 />
               </div>
 

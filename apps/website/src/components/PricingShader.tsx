@@ -34,7 +34,13 @@ export function PricingShader() {
       precision highp float;
       uniform float iTime;
       uniform vec2 iResolution;
+      uniform float uHue;
       
+      vec3 hsv2rgb(vec3 c) {
+        vec3 rgb = clamp(abs(mod(c.x * 6.0 + vec3(0.0,4.0,2.0), 6.0) - 3.0) - 1.0, 0.0, 1.0);
+        return c.z * mix(vec3(1.0), rgb, c.y);
+      }
+
       mat2 rotate2d(float angle) {
         float c = cos(angle);
         float s = sin(angle);
@@ -72,12 +78,13 @@ export function PricingShader() {
         
         vec2 v = rotate2d(iTime * 0.45) * uv;
         
-        // High impact athletic yellow color vector
-        vec3 foregroundColor = vec3(0.98, 0.8, 0.08) * (v.x * 0.4 + 0.7);
+        // Dynamic selected hue color mapping
+        vec3 baseColor = hsv2rgb(vec3(uHue / 360.0, 0.90, 0.95));
+        vec3 foregroundColor = baseColor * (v.x * 0.4 + 0.7);
         
         // Transparent mix background
         vec3 color = mix(vec3(0.0), foregroundColor, mask);
-        color = mix(color, vec3(1.0, 0.9, 0.4), paintCircle(uv, center, radius, 0.002).r);
+        color = mix(color, hsv2rgb(vec3(uHue / 360.0, 0.45, 0.98)), paintCircle(uv, center, radius, 0.002).r);
         
         // Output alpha proportional to lighting intensity so background stays dark/transparent
         float alpha = mask;
@@ -131,6 +138,7 @@ export function PricingShader() {
 
     const uTime = gl.getUniformLocation(program, "iTime");
     const uResolution = gl.getUniformLocation(program, "iResolution");
+    const uHueLoc = gl.getUniformLocation(program, "uHue");
 
     const startTime = performance.now();
     let animationId: number;
@@ -141,6 +149,23 @@ export function PricingShader() {
       gl.uniform2f(uResolution, canvas.width, canvas.height);
       const elapsed = performance.now() - startTime;
       gl.uniform1f(uTime, elapsed / 1000);
+
+      // Extract hue dynamically from --brand-accent variable on document root
+      let activeHue = 50;
+      if (typeof window !== "undefined") {
+        const rootStyles = getComputedStyle(document.documentElement);
+        const brandAccent = rootStyles.getPropertyValue("--brand-accent").trim();
+        if (brandAccent) {
+          const parts = brandAccent.split(" ");
+          if (parts.length > 0) {
+            const h = parseFloat(parts[0]);
+            if (!isNaN(h)) {
+              activeHue = h;
+            }
+          }
+        }
+      }
+      gl.uniform1f(uHueLoc, activeHue);
 
       gl.drawArrays(gl.TRIANGLES, 0, 6);
       animationId = requestAnimationFrame(render);

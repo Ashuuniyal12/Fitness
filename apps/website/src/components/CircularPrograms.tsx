@@ -209,7 +209,7 @@ export function CircularPrograms() {
         {/* Header */}
         <div className="text-center space-y-3">
           <span className="text-xs font-black uppercase tracking-widest text-yellow-400">Our Training Services</span>
-          <h2 className="grindy-brush text-[40px] md:text-[56px] leading-tight tracking-wide bg-clip-text text-transparent bg-gradient-to-r from-yellow-400 via-yellow-200 to-white uppercase pb-1">
+          <h2 className="grindy-brush text-[40px] md:text-[56px] leading-tight tracking-wide bg-clip-text text-transparent bg-gradient-to-r from-yellow-400 to-white uppercase pb-1">
             Special Programs
           </h2>
           <p className="text-[14px] md:text-[16px] text-zinc-400 max-w-2xl mx-auto">
