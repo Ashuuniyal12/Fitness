@@ -10,6 +10,9 @@ const montserrat = Montserrat({
   variable: '--font-montserrat',
 });
 
+// Authenticated admin dashboard — never statically prerender
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: 'Maximus Admin Portal | Core Operations',
   description: 'Manage members, payments, check-ins, class allocations, leads, and operational analytics.',
