@@ -1,6 +1,7 @@
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 generator client {
@@ -117,61 +118,78 @@ enum NotificationStatus {
 }
 
 model Gym {
-  id          String   @id @default(uuid()) @db.Uuid
-  name        String
-  address     String?
-  phone       String?
-  email       String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id        String   @id @default(uuid()) @db.Uuid
+  name      String
+  address   String?
+  phone     String?
+  email     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  users             User[]
-  membershipPlans   MembershipPlan[]
-  memberships       Membership[]
-  attendance        Attendance[]
-  trainers          Trainer[]
-  classes           Class[]
-  classBookings     ClassBooking[]
-  workoutPlans      WorkoutPlan[]
-  workoutSessions   WorkoutSession[]
-  diets             DietPlan[]
-  measurements      Measurement[]
-  progressPhotos    ProgressPhoto[]
-  invoices          Invoice[]
-  payments          Payment[]
-  expenses          Expense[]
-  inventoryItems    InventoryItem[]
-  leads             Lead[]
-  notifications     Notification[]
-  auditLogs         AuditLog[]
-  settings          Setting[]
+  users           User[]
+  membershipPlans MembershipPlan[]
+  memberships     Membership[]
+  attendance      Attendance[]
+  trainers        Trainer[]
+  classes         Class[]
+  classBookings   ClassBooking[]
+  workoutPlans    WorkoutPlan[]
+  workoutSessions WorkoutSession[]
+  diets           DietPlan[]
+  measurements    Measurement[]
+  progressPhotos  ProgressPhoto[]
+  invoices        Invoice[]
+  payments        Payment[]
+  expenses        Expense[]
+  inventoryItems  InventoryItem[]
+  leads           Lead[]
+  notifications   Notification[]
+  auditLogs       AuditLog[]
+  settings        Setting[]
+
+  roles            Role[]
+  permissions      Permission[]
+  ptPackages       PersonalTrainingPackage[]
+  ptSessions       PTSession[]
+  notificationLogs NotificationLog[]
+  galleries        Gallery[]
+  testimonials     Testimonial[]
+  faqs             Faq[]
+  blogs            Blog[]
+  vendors          Vendor[]
+  activityLogs     ActivityLog[]
 }
 
 model User {
-  id           String   @id @db.Uuid // Matches Supabase Auth User ID
-  email        String   @unique
-  role         UserRole @default(MEMBER)
-  gymId        String?  @db.Uuid
-  gym          Gym?     @relation(fields: [gymId], references: [id])
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id        String   @id @db.Uuid // Matches Supabase Auth User ID
+  email     String   @unique
+  role      UserRole @default(MEMBER)
+  gymId     String?  @db.Uuid
+  gym       Gym?     @relation(fields: [gymId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  profile            Profile?
-  trainerProfile     Trainer?          @relation("UserToTrainer")
-  assignedTrainerId  String?           @db.Uuid
-  assignedTrainer    Trainer?          @relation("TrainerToMember", fields: [assignedTrainerId], references: [id])
-  
-  attendance         Attendance[]
-  createdWorkouts    WorkoutPlan[]     @relation("WorkoutCreator")
-  workoutSessions    WorkoutSession[]  @relation("MemberWorkoutSession")
-  createdDiets       DietPlan[]        @relation("DietCreator")
-  recordedExpenses   Expense[]
-  auditLogs          AuditLog[]
+  profile           Profile?
+  trainerProfile    Trainer? @relation("UserToTrainer")
+  assignedTrainerId String?  @db.Uuid
+  assignedTrainer   Trainer? @relation("TrainerToMember", fields: [assignedTrainerId], references: [id])
+
+  attendance       Attendance[]
+  createdWorkouts  WorkoutPlan[]    @relation("WorkoutCreator")
+  workoutSessions  WorkoutSession[] @relation("MemberWorkoutSession")
+  createdDiets     DietPlan[]       @relation("DietCreator")
+  recordedExpenses Expense[]
+  auditLogs        AuditLog[]
+
+  roleId       String?       @db.Uuid
+  roleRef      Role?         @relation(fields: [roleId], references: [id])
+  blogs        Blog[]        @relation("BlogAuthor")
+  activityLogs ActivityLog[]
 }
 
 model Profile {
-  id               String   @id @db.Uuid // Matches User.id
-  user             User     @relation(fields: [id], references: [id], onDelete: Cascade)
+  id               String    @id @db.Uuid // Matches User.id
+  user             User      @relation(fields: [id], references: [id], onDelete: Cascade)
   name             String
   phone            String?
   photoUrl         String?
@@ -184,14 +202,15 @@ model Profile {
   goal             GoalType?
   gender           String?
   dob              DateTime?
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
 
-  memberships      Membership[]
-  classBookings    ClassBooking[]
-  measurements     Measurement[]
-  progressPhotos   ProgressPhoto[]
-  invoices         Invoice[]
+  memberships    Membership[]
+  classBookings  ClassBooking[]
+  measurements   Measurement[]
+  progressPhotos ProgressPhoto[]
+  invoices       Invoice[]
+  PTSession      PTSession[]
 }
 
 model Trainer {
@@ -206,9 +225,10 @@ model Trainer {
   ptEarnings  Decimal  @default(0.00) @db.Decimal(10, 2)
   createdAt   DateTime @default(now())
 
-  assignedMembers User[]   @relation("TrainerToMember")
+  assignedMembers User[]      @relation("TrainerToMember")
   classes         Class[]
-  approvedPrs     PR[]     @relation("PRApproval")
+  approvedPrs     PR[]        @relation("PRApproval")
+  PTSession       PTSession[]
 }
 
 model MembershipPlan {
@@ -222,23 +242,23 @@ model MembershipPlan {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  memberships  Membership[]
+  memberships Membership[]
 }
 
 model Membership {
-  id          String             @id @default(uuid()) @db.Uuid
-  gymId       String             @db.Uuid
-  gym         Gym                @relation(fields: [gymId], references: [id])
-  memberId    String             @db.Uuid
-  profile     Profile            @relation(fields: [memberId], references: [id])
-  planId      String             @db.Uuid
-  plan        MembershipPlan     @relation(fields: [planId], references: [id])
-  startDate   DateTime
-  endDate     DateTime
-  status      SubscriptionStatus @default(ACTIVE)
-  frozenAt    DateTime?
-  unfrozenAt  DateTime?
-  createdAt   DateTime           @default(now())
+  id         String             @id @default(uuid()) @db.Uuid
+  gymId      String             @db.Uuid
+  gym        Gym                @relation(fields: [gymId], references: [id])
+  memberId   String             @db.Uuid
+  profile    Profile            @relation(fields: [memberId], references: [id])
+  planId     String             @db.Uuid
+  plan       MembershipPlan     @relation(fields: [planId], references: [id])
+  startDate  DateTime
+  endDate    DateTime
+  status     SubscriptionStatus @default(ACTIVE)
+  frozenAt   DateTime?
+  unfrozenAt DateTime?
+  createdAt  DateTime           @default(now())
 }
 
 model Attendance {
@@ -269,7 +289,7 @@ model Class {
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
 
-  bookings     ClassBooking[]
+  bookings ClassBooking[]
 }
 
 model ClassBooking {
@@ -285,16 +305,19 @@ model ClassBooking {
 }
 
 model Exercise {
-  id          String   @id @default(uuid()) @db.Uuid
-  name        String
-  muscleGroup String
-  difficulty  String
+  id           String   @id @default(uuid()) @db.Uuid
+  name         String
+  muscleGroup  String
+  difficulty   String
   instructions String?
-  mediaUrl    String?
-  createdAt   DateTime @default(now())
+  mediaUrl     String?
+  createdAt    DateTime @default(now())
 
   workoutExercises WorkoutExercise[]
   prs              PR[]
+
+  categoryId String?           @db.Uuid
+  category   ExerciseCategory? @relation(fields: [categoryId], references: [id])
 }
 
 model WorkoutPlan {
@@ -336,7 +359,7 @@ model WorkoutSession {
   notes         String?
   createdAt     DateTime    @default(now())
 
-  exercises     WorkoutSessionExercise[]
+  exercises WorkoutSessionExercise[]
 }
 
 model WorkoutSessionExercise {
@@ -352,15 +375,15 @@ model WorkoutSessionExercise {
 }
 
 model PR {
-  id          String   @id @default(uuid()) @db.Uuid
-  memberId    String   @db.Uuid
-  exerciseId  String   @db.Uuid
-  exercise    Exercise @relation(fields: [exerciseId], references: [id])
-  maxWeight   Float
-  status      PRStatus @default(PENDING)
-  approvedBy  String?  @db.Uuid
-  trainer     Trainer? @relation("PRApproval", fields: [approvedBy], references: [id])
-  createdAt   DateTime @default(now())
+  id         String   @id @default(uuid()) @db.Uuid
+  memberId   String   @db.Uuid
+  exerciseId String   @db.Uuid
+  exercise   Exercise @relation(fields: [exerciseId], references: [id])
+  maxWeight  Float
+  status     PRStatus @default(PENDING)
+  approvedBy String?  @db.Uuid
+  trainer    Trainer? @relation("PRApproval", fields: [approvedBy], references: [id])
+  createdAt  DateTime @default(now())
 }
 
 model DietPlan {
@@ -375,18 +398,18 @@ model DietPlan {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  meals       DietMeal[]
+  meals DietMeal[]
 }
 
 model DietMeal {
-  id          String   @id @default(uuid()) @db.Uuid
-  dietPlanId  String   @db.Uuid
-  dietPlan    DietPlan @relation(fields: [dietPlanId], references: [id], onDelete: Cascade)
-  mealType    MealType
-  calories    Int
-  protein     Float
-  fat         Float
-  carbs       Float
+  id           String   @id @default(uuid()) @db.Uuid
+  dietPlanId   String   @db.Uuid
+  dietPlan     DietPlan @relation(fields: [dietPlanId], references: [id], onDelete: Cascade)
+  mealType     MealType
+  calories     Int
+  protein      Float
+  fat          Float
+  carbs        Float
   instructions String?
 }
 
@@ -433,7 +456,7 @@ model Invoice {
   dueDate       DateTime
   createdAt     DateTime      @default(now())
 
-  payments      Payment[]
+  payments Payment[]
 }
 
 model Payment {
@@ -475,6 +498,9 @@ model InventoryItem {
   vendorName  String?
   createdAt   DateTime          @default(now())
   updatedAt   DateTime          @updatedAt
+
+  vendorId String? @db.Uuid
+  vendor   Vendor? @relation(fields: [vendorId], references: [id])
 }
 
 model Lead {
@@ -501,6 +527,8 @@ model Notification {
   type      NotificationType
   status    NotificationStatus @default(PENDING)
   createdAt DateTime           @default(now())
+
+  logs NotificationLog[]
 }
 
 model AuditLog {
@@ -524,4 +552,152 @@ model Setting {
   updatedAt DateTime @updatedAt
 
   @@unique([gymId, key])
+}
+
+model Role {
+  id          String       @id @default(uuid()) @db.Uuid
+  gymId       String       @db.Uuid
+  gym         Gym          @relation(fields: [gymId], references: [id])
+  name        String       @unique
+  description String?
+  permissions Permission[] @relation("RolePermissions")
+  users       User[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+}
+
+model Permission {
+  id          String   @id @default(uuid()) @db.Uuid
+  gymId       String   @db.Uuid
+  gym         Gym      @relation(fields: [gymId], references: [id])
+  name        String   @unique
+  description String?
+  roles       Role[]   @relation("RolePermissions")
+  createdAt   DateTime @default(now())
+}
+
+model ExerciseCategory {
+  id          String     @id @default(uuid()) @db.Uuid
+  name        String     @unique
+  description String?
+  exercises   Exercise[]
+  createdAt   DateTime   @default(now())
+}
+
+model PersonalTrainingPackage {
+  id           String      @id @default(uuid()) @db.Uuid
+  gymId        String      @db.Uuid
+  gym          Gym         @relation(fields: [gymId], references: [id])
+  name         String
+  description  String?
+  price        Decimal     @db.Decimal(10, 2)
+  sessions     Int
+  durationDays Int
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  ptSessions   PTSession[]
+}
+
+model PTSession {
+  id        String                  @id @default(uuid()) @db.Uuid
+  gymId     String                  @db.Uuid
+  gym       Gym                     @relation(fields: [gymId], references: [id])
+  trainerId String                  @db.Uuid
+  trainer   Trainer                 @relation(fields: [trainerId], references: [id])
+  memberId  String                  @db.Uuid
+  profile   Profile                 @relation(fields: [memberId], references: [id])
+  packageId String                  @db.Uuid
+  package   PersonalTrainingPackage @relation(fields: [packageId], references: [id])
+  date      DateTime
+  notes     String?
+  status    String                  @default("SCHEDULED") // SCHEDULED, COMPLETED, CANCELLED
+  createdAt DateTime                @default(now())
+}
+
+model NotificationLog {
+  id             String       @id @default(uuid()) @db.Uuid
+  gymId          String       @db.Uuid
+  gym            Gym          @relation(fields: [gymId], references: [id])
+  notificationId String       @db.Uuid
+  notification   Notification @relation(fields: [notificationId], references: [id], onDelete: Cascade)
+  status         String
+  errorMessage   String?
+  sentAt         DateTime     @default(now())
+}
+
+model Gallery {
+  id          String   @id @default(uuid()) @db.Uuid
+  gymId       String   @db.Uuid
+  gym         Gym      @relation(fields: [gymId], references: [id])
+  url         String
+  title       String?
+  category    String   @default("HOMEPAGE") // HOMEPAGE, FACILITY, TRANSFORMATION
+  description String?
+  createdAt   DateTime @default(now())
+}
+
+model Testimonial {
+  id        String   @id @default(uuid()) @db.Uuid
+  gymId     String   @db.Uuid
+  gym       Gym      @relation(fields: [gymId], references: [id])
+  name      String
+  role      String?
+  text      String
+  rating    Int      @default(5)
+  avatarUrl String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+}
+
+model Faq {
+  id        String   @id @default(uuid()) @db.Uuid
+  gymId     String   @db.Uuid
+  gym       Gym      @relation(fields: [gymId], references: [id])
+  question  String
+  answer    String
+  category  String   @default("GENERAL") // GENERAL, MEMBERSHIP, TIMINGS
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+}
+
+model Blog {
+  id        String   @id @default(uuid()) @db.Uuid
+  gymId     String   @db.Uuid
+  gym       Gym      @relation(fields: [gymId], references: [id])
+  title     String
+  slug      String   @unique
+  content   String
+  image     String?
+  authorId  String   @db.Uuid
+  author    User     @relation("BlogAuthor", fields: [authorId], references: [id])
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Vendor {
+  id             String          @id @default(uuid()) @db.Uuid
+  gymId          String          @db.Uuid
+  gym            Gym             @relation(fields: [gymId], references: [id])
+  name           String
+  contactName    String?
+  email          String?
+  phone          String?
+  address        String?
+  inventoryItems InventoryItem[]
+  createdAt      DateTime        @default(now())
+}
+
+model ActivityLog {
+  id        String   @id @default(uuid()) @db.Uuid
+  gymId     String?  @db.Uuid
+  gym       Gym?     @relation(fields: [gymId], references: [id])
+  userId    String?  @db.Uuid
+  user      User?    @relation(fields: [userId], references: [id])
+  action    String
+  module    String
+  details   String?
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
 }

@@ -1,5 +1,7 @@
 import type { Metadata } from 'next';
 import { Montserrat } from 'next/font/google';
+import { AuthProvider } from '../context/AuthContext';
+import AdminSidebar from '../components/AdminSidebar';
 import './globals.css';
 
 const montserrat = Montserrat({
@@ -21,7 +23,14 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${montserrat.className} antialiased bg-zinc-950 text-zinc-100 min-h-screen`} suppressHydrationWarning>
-        {children}
+        <AuthProvider>
+          <div style={{ display: 'flex', minHeight: '100vh' }}>
+            <AdminSidebar />
+            <main style={{ flex: 1, overflow: 'auto' }}>
+              {children}
+            </main>
+          </div>
+        </AuthProvider>
       </body>
     </html>
   );
