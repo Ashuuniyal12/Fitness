@@ -1,0 +1,527 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum UserRole {
+  SUPER_ADMIN
+  ADMIN
+  TRAINER
+  RECEPTIONIST
+  MEMBER
+  GUEST
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  EXPIRED
+  FROZEN
+  CANCELLED
+}
+
+enum PRStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum GoalType {
+  WEIGHT_LOSS
+  MUSCLE_GAIN
+  STRENGTH
+  FITNESS
+}
+
+enum ClassCategory {
+  YOGA
+  CARDIO
+  STRENGTH
+  CROSSFIT
+  HIIT
+  PILATES
+  ZUMBA
+}
+
+enum BookingStatus {
+  BOOKED
+  WAITLISTED
+  CANCELLED
+}
+
+enum MealType {
+  BREAKFAST
+  LUNCH
+  DINNER
+  SNACKS
+}
+
+enum PaymentMethod {
+  CASH
+  UPI
+  CARD
+  NET_BANKING
+  EMI
+}
+
+enum PaymentStatus {
+  SUCCESS
+  FAILED
+  PENDING
+  REFUNDED
+}
+
+enum InvoiceStatus {
+  PAID
+  PENDING
+  OVERDUE
+  REFUNDED
+}
+
+enum InventoryCategory {
+  PROTEIN
+  SHAKER
+  GYM_WEAR
+  EQUIPMENT
+}
+
+enum LeadSource {
+  WEBSITE
+  WALK_IN
+  PHONE
+  FACEBOOK
+  INSTAGRAM
+}
+
+enum LeadStatus {
+  INTERESTED
+  JOINED
+  REJECTED
+  FOLLOW_UP
+}
+
+enum NotificationType {
+  SMS
+  EMAIL
+  PUSH
+  WHATSAPP
+}
+
+enum NotificationStatus {
+  SENT
+  FAILED
+  PENDING
+}
+
+model Gym {
+  id          String   @id @default(uuid()) @db.Uuid
+  name        String
+  address     String?
+  phone       String?
+  email       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  users             User[]
+  membershipPlans   MembershipPlan[]
+  memberships       Membership[]
+  attendance        Attendance[]
+  trainers          Trainer[]
+  classes           Class[]
+  classBookings     ClassBooking[]
+  workoutPlans      WorkoutPlan[]
+  workoutSessions   WorkoutSession[]
+  diets             DietPlan[]
+  measurements      Measurement[]
+  progressPhotos    ProgressPhoto[]
+  invoices          Invoice[]
+  payments          Payment[]
+  expenses          Expense[]
+  inventoryItems    InventoryItem[]
+  leads             Lead[]
+  notifications     Notification[]
+  auditLogs         AuditLog[]
+  settings          Setting[]
+}
+
+model User {
+  id           String   @id @db.Uuid // Matches Supabase Auth User ID
+  email        String   @unique
+  role         UserRole @default(MEMBER)
+  gymId        String?  @db.Uuid
+  gym          Gym?     @relation(fields: [gymId], references: [id])
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  profile            Profile?
+  trainerProfile     Trainer?          @relation("UserToTrainer")
+  assignedTrainerId  String?           @db.Uuid
+  assignedTrainer    Trainer?          @relation("TrainerToMember", fields: [assignedTrainerId], references: [id])
+  
+  attendance         Attendance[]
+  createdWorkouts    WorkoutPlan[]     @relation("WorkoutCreator")
+  workoutSessions    WorkoutSession[]  @relation("MemberWorkoutSession")
+  createdDiets       DietPlan[]        @relation("DietCreator")
+  recordedExpenses   Expense[]
+  auditLogs          AuditLog[]
+}
+
+model Profile {
+  id               String   @id @db.Uuid // Matches User.id
+  user             User     @relation(fields: [id], references: [id], onDelete: Cascade)
+  name             String
+  phone            String?
+  photoUrl         String?
+  qrCode           String?
+  emergencyContact String?
+  medicalHistory   String?
+  height           Float?
+  weight           Float?
+  bmi              Float?
+  goal             GoalType?
+  gender           String?
+  dob              DateTime?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  memberships      Membership[]
+  classBookings    ClassBooking[]
+  measurements     Measurement[]
+  progressPhotos   ProgressPhoto[]
+  invoices         Invoice[]
+}
+
+model Trainer {
+  id          String   @id @db.Uuid // Matches User.id
+  user        User     @relation("UserToTrainer", fields: [id], references: [id], onDelete: Cascade)
+  gymId       String   @db.Uuid
+  gym         Gym      @relation(fields: [gymId], references: [id])
+  specialties String[]
+  bio         String?
+  rating      Float    @default(5.0)
+  salary      Decimal  @db.Decimal(10, 2)
+  ptEarnings  Decimal  @default(0.00) @db.Decimal(10, 2)
+  createdAt   DateTime @default(now())
+
+  assignedMembers User[]   @relation("TrainerToMember")
+  classes         Class[]
+  approvedPrs     PR[]     @relation("PRApproval")
+}
+
+model MembershipPlan {
+  id           String   @id @default(uuid()) @db.Uuid
+  gymId        String   @db.Uuid
+  gym          Gym      @relation(fields: [gymId], references: [id])
+  name         String
+  description  String?
+  price        Decimal  @db.Decimal(10, 2)
+  durationDays Int
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  memberships  Membership[]
+}
+
+model Membership {
+  id          String             @id @default(uuid()) @db.Uuid
+  gymId       String             @db.Uuid
+  gym         Gym                @relation(fields: [gymId], references: [id])
+  memberId    String             @db.Uuid
+  profile     Profile            @relation(fields: [memberId], references: [id])
+  planId      String             @db.Uuid
+  plan        MembershipPlan     @relation(fields: [planId], references: [id])
+  startDate   DateTime
+  endDate     DateTime
+  status      SubscriptionStatus @default(ACTIVE)
+  frozenAt    DateTime?
+  unfrozenAt  DateTime?
+  createdAt   DateTime           @default(now())
+}
+
+model Attendance {
+  id           String    @id @default(uuid()) @db.Uuid
+  gymId        String    @db.Uuid
+  gym          Gym       @relation(fields: [gymId], references: [id])
+  userId       String    @db.Uuid
+  user         User      @relation(fields: [userId], references: [id])
+  date         DateTime  @db.Date
+  checkInTime  DateTime  @default(now())
+  checkOutTime DateTime?
+  createdAt    DateTime  @default(now())
+
+  @@unique([userId, date])
+}
+
+model Class {
+  id           String        @id @default(uuid()) @db.Uuid
+  gymId        String        @db.Uuid
+  gym          Gym           @relation(fields: [gymId], references: [id])
+  name         String
+  description  String?
+  category     ClassCategory
+  trainerId    String        @db.Uuid
+  trainer      Trainer       @relation(fields: [trainerId], references: [id])
+  capacity     Int
+  scheduleTime DateTime
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  bookings     ClassBooking[]
+}
+
+model ClassBooking {
+  id        String        @id @default(uuid()) @db.Uuid
+  gymId     String        @db.Uuid
+  gym       Gym           @relation(fields: [gymId], references: [id])
+  classId   String        @db.Uuid
+  class     Class         @relation(fields: [classId], references: [id], onDelete: Cascade)
+  memberId  String        @db.Uuid
+  profile   Profile       @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  status    BookingStatus @default(BOOKED)
+  createdAt DateTime      @default(now())
+}
+
+model Exercise {
+  id          String   @id @default(uuid()) @db.Uuid
+  name        String
+  muscleGroup String
+  difficulty  String
+  instructions String?
+  mediaUrl    String?
+  createdAt   DateTime @default(now())
+
+  workoutExercises WorkoutExercise[]
+  prs              PR[]
+}
+
+model WorkoutPlan {
+  id          String   @id @default(uuid()) @db.Uuid
+  gymId       String   @db.Uuid
+  gym         Gym      @relation(fields: [gymId], references: [id])
+  name        String
+  description String?
+  goal        GoalType
+  creatorId   String   @db.Uuid
+  creator     User     @relation("WorkoutCreator", fields: [creatorId], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  workoutExercises WorkoutExercise[]
+  sessions         WorkoutSession[]
+}
+
+model WorkoutExercise {
+  id            String      @id @default(uuid()) @db.Uuid
+  workoutPlanId String      @db.Uuid
+  workoutPlan   WorkoutPlan @relation(fields: [workoutPlanId], references: [id], onDelete: Cascade)
+  exerciseId    String      @db.Uuid
+  exercise      Exercise    @relation(fields: [exerciseId], references: [id])
+  sets          Int
+  reps          Int
+  restSeconds   Int         @default(60)
+}
+
+model WorkoutSession {
+  id            String      @id @default(uuid()) @db.Uuid
+  gymId         String      @db.Uuid
+  gym           Gym         @relation(fields: [gymId], references: [id])
+  memberId      String      @db.Uuid
+  member        User        @relation("MemberWorkoutSession", fields: [memberId], references: [id])
+  workoutPlanId String      @db.Uuid
+  workoutPlan   WorkoutPlan @relation(fields: [workoutPlanId], references: [id])
+  date          DateTime    @default(now())
+  notes         String?
+  createdAt     DateTime    @default(now())
+
+  exercises     WorkoutSessionExercise[]
+}
+
+model WorkoutSessionExercise {
+  id               String         @id @default(uuid()) @db.Uuid
+  workoutSessionId String         @db.Uuid
+  workoutSession   WorkoutSession @relation(fields: [workoutSessionId], references: [id], onDelete: Cascade)
+  exerciseId       String         @db.Uuid
+  sets             Int
+  reps             Int
+  weight           Float
+  restSeconds      Int            @default(60)
+  notes            String?
+}
+
+model PR {
+  id          String   @id @default(uuid()) @db.Uuid
+  memberId    String   @db.Uuid
+  exerciseId  String   @db.Uuid
+  exercise    Exercise @relation(fields: [exerciseId], references: [id])
+  maxWeight   Float
+  status      PRStatus @default(PENDING)
+  approvedBy  String?  @db.Uuid
+  trainer     Trainer? @relation("PRApproval", fields: [approvedBy], references: [id])
+  createdAt   DateTime @default(now())
+}
+
+model DietPlan {
+  id          String   @id @default(uuid()) @db.Uuid
+  gymId       String   @db.Uuid
+  gym         Gym      @relation(fields: [gymId], references: [id])
+  name        String
+  description String?
+  goal        GoalType
+  creatorId   String   @db.Uuid
+  creator     User     @relation("DietCreator", fields: [creatorId], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  meals       DietMeal[]
+}
+
+model DietMeal {
+  id          String   @id @default(uuid()) @db.Uuid
+  dietPlanId  String   @db.Uuid
+  dietPlan    DietPlan @relation(fields: [dietPlanId], references: [id], onDelete: Cascade)
+  mealType    MealType
+  calories    Int
+  protein     Float
+  fat         Float
+  carbs       Float
+  instructions String?
+}
+
+model Measurement {
+  id         String   @id @default(uuid()) @db.Uuid
+  gymId      String   @db.Uuid
+  gym        Gym      @relation(fields: [gymId], references: [id])
+  memberId   String   @db.Uuid
+  profile    Profile  @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  weight     Float
+  bodyFat    Float?
+  bmi        Float?
+  chest      Float?
+  waist      Float?
+  hip        Float?
+  arms       Float?
+  thigh      Float?
+  shoulders  Float?
+  recordedAt DateTime @default(now())
+}
+
+model ProgressPhoto {
+  id          String   @id @default(uuid()) @db.Uuid
+  gymId       String   @db.Uuid
+  gym         Gym      @relation(fields: [gymId], references: [id])
+  memberId    String   @db.Uuid
+  profile     Profile  @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  photoUrl    String
+  description String?
+  recordedAt  DateTime @default(now())
+}
+
+model Invoice {
+  id            String        @id @default(uuid()) @db.Uuid
+  gymId         String        @db.Uuid
+  gym           Gym           @relation(fields: [gymId], references: [id])
+  memberId      String        @db.Uuid
+  profile       Profile       @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  invoiceNumber String        @unique
+  amount        Decimal       @db.Decimal(10, 2)
+  taxAmount     Decimal       @db.Decimal(10, 2)
+  totalAmount   Decimal       @db.Decimal(10, 2)
+  status        InvoiceStatus @default(PENDING)
+  dueDate       DateTime
+  createdAt     DateTime      @default(now())
+
+  payments      Payment[]
+}
+
+model Payment {
+  id            String        @id @default(uuid()) @db.Uuid
+  gymId         String        @db.Uuid
+  gym           Gym           @relation(fields: [gymId], references: [id])
+  invoiceId     String        @db.Uuid
+  invoice       Invoice       @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  amount        Decimal       @db.Decimal(10, 2)
+  paymentMethod PaymentMethod
+  transactionId String?
+  status        PaymentStatus @default(PENDING)
+  createdAt     DateTime      @default(now())
+}
+
+model Expense {
+  id           String   @id @default(uuid()) @db.Uuid
+  gymId        String   @db.Uuid
+  gym          Gym      @relation(fields: [gymId], references: [id])
+  title        String
+  description  String?
+  amount       Decimal  @db.Decimal(10, 2)
+  category     String
+  date         DateTime
+  recordedById String   @db.Uuid
+  recordedBy   User     @relation(fields: [recordedById], references: [id])
+  createdAt    DateTime @default(now())
+}
+
+model InventoryItem {
+  id          String            @id @default(uuid()) @db.Uuid
+  gymId       String            @db.Uuid
+  gym         Gym               @relation(fields: [gymId], references: [id])
+  name        String
+  description String?
+  category    InventoryCategory
+  stockQty    Int
+  price       Decimal           @db.Decimal(10, 2)
+  vendorName  String?
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+}
+
+model Lead {
+  id        String     @id @default(uuid()) @db.Uuid
+  gymId     String     @db.Uuid
+  gym       Gym        @relation(fields: [gymId], references: [id])
+  name      String
+  email     String?
+  phone     String
+  source    LeadSource
+  status    LeadStatus @default(INTERESTED)
+  notes     String?
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+}
+
+model Notification {
+  id        String             @id @default(uuid()) @db.Uuid
+  gymId     String             @db.Uuid
+  gym       Gym                @relation(fields: [gymId], references: [id])
+  userId    String             @db.Uuid
+  title     String
+  message   String
+  type      NotificationType
+  status    NotificationStatus @default(PENDING)
+  createdAt DateTime           @default(now())
+}
+
+model AuditLog {
+  id        String   @id @default(uuid()) @db.Uuid
+  gymId     String?  @db.Uuid
+  gym       Gym?     @relation(fields: [gymId], references: [id])
+  userId    String   @db.Uuid
+  user      User     @relation(fields: [userId], references: [id])
+  action    String
+  details   String?
+  ipAddress String?
+  createdAt DateTime @default(now())
+}
+
+model Setting {
+  id        String   @id @default(uuid()) @db.Uuid
+  gymId     String   @db.Uuid
+  gym       Gym      @relation(fields: [gymId], references: [id])
+  key       String
+  value     String
+  updatedAt DateTime @updatedAt
+
+  @@unique([gymId, key])
+}
