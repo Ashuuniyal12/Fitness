@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
-import { RegisterUserDto, UpdateProfileDto } from '@maximus/types';
+import { UpdateProfileDto } from '@maximus/types';
 
 @Injectable()
 export class UsersService {
@@ -22,19 +22,22 @@ export class UsersService {
     return user;
   }
 
-  async createUser(dto: RegisterUserDto) {
-    return this.prisma.user.create({
-      data: {
-        id: dto.gymId || undefined, // Set ID if available or let it map
-        email: dto.email,
-        role: dto.role,
-        gymId: dto.gymId,
-        profile: {
-          create: {
-            name: dto.name,
-          },
-        },
-      },
+  async updateGym(id: string, gymId: string | null) {
+    const user = await this.prisma.user.findUnique({ where: { id } });
+    if (!user) throw new NotFoundException('User not found');
+    return this.prisma.user.update({
+      where: { id },
+      data: { gymId },
+      include: { profile: true },
+    });
+  }
+
+  async updateStatus(id: string, status: 'ACTIVE' | 'FROZEN' | 'SUSPENDED') {
+    const user = await this.prisma.user.findUnique({ where: { id } });
+    if (!user) throw new NotFoundException('User not found');
+    return this.prisma.user.update({
+      where: { id },
+      data: { status },
       include: { profile: true },
     });
   }
@@ -46,6 +49,7 @@ export class UsersService {
     const profileData = {
       name: dto.name,
       phone: dto.phone,
+      photoUrl: dto.photoUrl,
       emergencyContact: dto.emergencyContact,
       medicalHistory: dto.medicalHistory,
       height: dto.height,

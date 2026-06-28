@@ -10,6 +10,9 @@ const montserrat = Montserrat({
   variable: '--font-montserrat',
 });
 
+// Authenticated member portal — never statically prerender
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: 'Maximus Member Portal | Your Fitness Journey',
   description: 'Log workouts, track daily nutrition, view goals, check-in, and level up with badges.',

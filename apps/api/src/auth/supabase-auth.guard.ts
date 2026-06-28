@@ -37,21 +37,12 @@ export class SupabaseAuthGuard implements CanActivate {
       include: { profile: true },
     });
 
-    // Auto-create local user profile if it doesn't exist yet but exists in Supabase
+    // Reject users who exist in Supabase Auth but have not been provisioned
+    // by an Admin. Only pre-created accounts (via admin or super-admin) are allowed.
     if (!dbUser) {
-      dbUser = await this.prisma.user.create({
-        data: {
-          id: user.id,
-          email: user.email || '',
-          role: 'MEMBER',
-          profile: {
-            create: {
-              name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'New Member',
-            },
-          },
-        },
-        include: { profile: true },
-      });
+      throw new UnauthorizedException(
+        'Account not provisioned. Please contact your gym administrator.',
+      );
     }
 
     // Attach user information to request object

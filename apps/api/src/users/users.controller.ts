@@ -1,9 +1,9 @@
-import { Controller, Get, Post, Put, Body, Param, UseGuards, Req } from '@nestjs/common';
+import { Controller, Get, Put, Patch, Body, Param, UseGuards, Req } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { SupabaseAuthGuard } from '../auth/supabase-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
-import { RegisterUserDto, UpdateProfileDto } from '@maximus/types';
+import { UpdateProfileDto } from '@maximus/types';
 
 @Controller('users')
 @UseGuards(SupabaseAuthGuard, RolesGuard)
@@ -16,15 +16,27 @@ export class UsersController {
     return this.usersService.findAll(req.user.gymId);
   }
 
-  @Post()
-  @Roles('SUPER_ADMIN', 'ADMIN')
-  async create(@Body() dto: RegisterUserDto) {
-    return this.usersService.createUser(dto);
-  }
-
   @Get(':id/dashboard')
   async getDashboard(@Param('id') id: string) {
     return this.usersService.getDashboard(id);
+  }
+
+  @Patch(':id/gym')
+  @Roles('SUPER_ADMIN', 'ADMIN')
+  async updateGym(
+    @Param('id') id: string,
+    @Body('gymId') gymId: string | null,
+  ) {
+    return this.usersService.updateGym(id, gymId ?? null);
+  }
+
+  @Patch(':id/status')
+  @Roles('SUPER_ADMIN', 'ADMIN')
+  async updateStatus(
+    @Param('id') id: string,
+    @Body('status') status: 'ACTIVE' | 'FROZEN' | 'SUSPENDED',
+  ) {
+    return this.usersService.updateStatus(id, status);
   }
 
   @Put(':id')

@@ -36,6 +36,7 @@ export type LoginDto = z.infer<typeof LoginSchema>;
 export const UpdateProfileSchema = z.object({
   name: z.string().min(2).optional(),
   phone: z.string().optional(),
+  photoUrl: z.string().optional(),
   emergencyContact: z.string().optional(),
   medicalHistory: z.string().optional(),
   height: z.number().positive().optional(),

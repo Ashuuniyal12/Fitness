@@ -49,7 +49,8 @@ async function createSuperAdmin() {
 
   try {
     // ── Step 1: Create Supabase Auth user ───────────────────────────────────
-    const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
+    let authData, authError;
+    ({ data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
       email: ADMIN_EMAIL,
       password: ADMIN_PASSWORD,
       email_confirm: true,           // skip email confirmation
@@ -58,7 +59,7 @@ async function createSuperAdmin() {
         phone: ADMIN_PHONE,
         role: 'SUPER_ADMIN',
       },
-    });
+    }));
 
     if (authError) {
       // If user already exists in auth, try to fetch their ID
