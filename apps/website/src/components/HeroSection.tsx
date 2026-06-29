@@ -118,7 +118,7 @@ const Lightning: React.FC<LightningProps> = ({
           uv.x += uXOffset;
           
           float n = 2.0 * fbm(uv * uSize + 0.8 * iTime * uSpeed) - 1.0;
-          uv.x += n * clamp(aspect * 0.45, 0.2, 0.55);
+          uv.x += n * clamp(aspect * 0.7, 0.38, 0.65);
           uv.y += n;
           
           float dist = abs(uv.x);

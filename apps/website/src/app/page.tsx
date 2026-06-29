@@ -7,7 +7,7 @@ import {
   Dumbbell, Shield, Trophy, Users, CheckCircle2, ChevronDown,
   Mail, Phone, ArrowUpRight, Zap, Target, Flame
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
 import { CinematicFooter } from '../components/CinematicFooter';
 import { HeroSection } from '../components/HeroSection';
 import { PricingShader } from '../components/PricingShader';
@@ -361,6 +361,12 @@ export default function MarketingPage() {
           }
           .animate-marquee-loop {
             animation: marqueeLoop 30s linear infinite;
+          }
+          html, body {
+            cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Cg transform='rotate(45 16 16)'%3E%3Cline x1='2' y1='16' x2='30' y2='16' stroke='%23eab308' stroke-width='2' stroke-linecap='round'/%3E%3Crect x='5' y='14' width='2' height='4' rx='0.5' fill='%23eab308'/%3E%3Crect x='7' y='10' width='2.5' height='12' rx='1' fill='%2327272a' stroke='%23eab308' stroke-width='1'/%3E%3Crect x='10' y='8' width='3' height='16' rx='1' fill='%2318181b' stroke='%23eab308' stroke-width='1'/%3E%3Crect x='25' y='14' width='2' height='4' rx='0.5' fill='%23eab308'/%3E%3Crect x='22.5' y='10' width='2.5' height='12' rx='1' fill='%2327272a' stroke='%23eab308' stroke-width='1'/%3E%3Crect x='19' y='8' width='3' height='16' rx='1' fill='%2318181b' stroke='%23eab308' stroke-width='1'/%3E%3C/g%3E%3C/svg%3E") 6 6, auto !important;
+          }
+          a, button, [role="button"], select, input, textarea, label {
+            cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Cg transform='rotate(45 16 16)'%3E%3Cline x1='2' y1='16' x2='30' y2='16' stroke='%23ffffff' stroke-width='2.5' stroke-linecap='round'/%3E%3Crect x='5' y='14' width='2' height='4' rx='0.5' fill='%23ffffff'/%3E%3Crect x='7' y='10' width='2.5' height='12' rx='1' fill='%23eab308' stroke='%23ffffff' stroke-width='1'/%3E%3Crect x='10' y='8' width='3' height='16' rx='1' fill='%23eab308' stroke='%23ffffff' stroke-width='1'/%3E%3Crect x='25' y='14' width='2' height='4' rx='0.5' fill='%23ffffff'/%3E%3Crect x='22.5' y='10' width='2.5' height='12' rx='1' fill='%23eab308' stroke='%23ffffff' stroke-width='1'/%3E%3Crect x='19' y='8' width='3' height='16' rx='1' fill='%23eab308' stroke='%23ffffff' stroke-width='1'/%3E%3C/g%3E%3C/svg%3E") 6 6, pointer !important;
           }
         `}</style>
         
@@ -797,6 +803,144 @@ export default function MarketingPage() {
 
       {/* Cinematic Footer */}
       <CinematicFooter />
+
+      {/* Floating Scroll Elements */}
+      <FloatingScrollElements />
+    </div>
+  );
+}
+
+function FloatingScrollElements() {
+  const [mounted, setMounted] = React.useState(false);
+
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const { scrollYProgress } = useScroll();
+
+  const yTrack = useTransform(scrollYProgress, [0, 1], ["8vh", "88vh"]);
+  const freq = 4.5 * 2 * Math.PI; // 4.5 oscillations down the page
+  const amp = 36; // Swing amplitude
+  const center = 50; // Center offset
+
+  // Helper to generate helical path animations with unique phase shifts & prime frequency wobbles
+  const useHelicalTransform = (phase: number, wobbleFreq1: number, wobbleFreq2: number, opacityBase: number, opacityMax: number) => {
+    // Left horizontal sweep with wobbles
+    const left = useTransform(scrollYProgress, (progress) => {
+      const base = Math.sin(progress * freq + phase);
+      const noise = 0.16 * Math.sin(progress * freq * wobbleFreq1 + 1.2) + 0.08 * Math.cos(progress * freq * wobbleFreq2);
+      const xVal = center + (base + noise) * amp;
+      return `${xVal}%`;
+    });
+
+    // 3D Depth Scaling
+    const scale = useTransform(scrollYProgress, (progress) => {
+      const baseScale = Math.cos(progress * freq + phase);
+      const scaleNoise = 0.1 * Math.sin(progress * freq * wobbleFreq1);
+      return 0.85 + (baseScale + scaleNoise) * 0.35;
+    });
+
+    // Opacity Depth Mapping
+    const opacity = useTransform(scrollYProgress, (progress) => {
+      const factor = Math.cos(progress * freq + phase);
+      return opacityBase + (1.0 + factor) * 0.5 * (opacityMax - opacityBase);
+    });
+
+    // Rotation & rocking
+    const rotate = useTransform(scrollYProgress, (progress) => {
+      const dir = (phase % (2 * Math.PI) > Math.PI ? -1 : 1);
+      const spin = dir * progress * 1080;
+      const wobble = Math.sin(progress * 40 + phase) * 12;
+      return spin + wobble;
+    });
+
+    return { left, scale, opacity, rotate };
+  };
+
+  // Generate 5 balanced phases (72 degrees or 0.4 * PI intervals)
+  const dBell = useHelicalTransform(0, 2.7, 5.8, 0.18, 0.45);
+  const wPlate = useHelicalTransform(0.4 * Math.PI, 3.1, 6.3, 0.18, 0.45);
+  const kBell = useHelicalTransform(0.8 * Math.PI, 2.3, 7.1, 0.15, 0.38);
+  const shaker = useHelicalTransform(1.2 * Math.PI, 2.9, 6.7, 0.15, 0.38);
+  const shoes = useHelicalTransform(1.6 * Math.PI, 3.3, 5.4, 0.15, 0.38);
+
+  if (!mounted) return null;
+
+  return (
+    <div className="fixed inset-0 pointer-events-none z-20 overflow-hidden select-none">
+      {/* 1. Helical Dumbbell */}
+      <motion.div 
+        style={{ y: yTrack, left: dBell.left, scale: dBell.scale, opacity: dBell.opacity, rotate: dBell.rotate }} 
+        className="absolute w-12 h-12 -ml-6 md:w-24 md:h-24 md:-ml-12 filter drop-shadow-[0_0_15px_rgba(234,179,8,0.3)]"
+      >
+        <svg width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+          <rect x="2" y="10" width="20" height="4" rx="1" fill="#eab308" />
+          <rect x="5" y="6" width="3" height="12" rx="1" fill="#18181b" stroke="#eab308" strokeWidth="1.5" />
+          <rect x="3" y="8" width="2" height="8" rx="0.5" fill="#09090b" stroke="#52525b" strokeWidth="1" />
+          <rect x="16" y="6" width="3" height="12" rx="1" fill="#18181b" stroke="#eab308" strokeWidth="1.5" />
+          <rect x="19" y="8" width="2" height="8" rx="0.5" fill="#09090b" stroke="#52525b" strokeWidth="1" />
+        </svg>
+      </motion.div>
+
+      {/* 2. Helical Bumper Weight Plate */}
+      <motion.div 
+        style={{ y: yTrack, left: wPlate.left, scale: wPlate.scale, opacity: wPlate.opacity, rotate: wPlate.rotate }} 
+        className="absolute w-16 h-16 -ml-8 md:w-32 md:h-32 md:-ml-16 filter drop-shadow-[0_0_20px_rgba(234,179,8,0.25)]"
+      >
+        <svg width="100%" height="100%" viewBox="0 0 100 100" fill="none">
+          <circle cx="50" cy="50" r="46" fill="#18181b" stroke="#27272a" strokeWidth="4" />
+          <circle cx="50" cy="50" r="38" fill="none" stroke="#eab308" strokeWidth="1" strokeDasharray="3 3" />
+          <circle cx="50" cy="50" r="16" fill="none" stroke="#27272a" strokeWidth="6" />
+          <circle cx="50" cy="50" r="10" fill="none" stroke="#eab308" strokeWidth="2" />
+          <text x="50" y="32" fill="#52525b" fontSize="7" fontWeight="800" textAnchor="middle" letterSpacing="0.1em">MAXIMUS</text>
+          <text x="50" y="74" fill="#eab308" fontSize="10" fontWeight="900" textAnchor="middle">25 KG</text>
+        </svg>
+      </motion.div>
+
+      {/* 3. Helical Cast Iron Kettlebell */}
+      <motion.div 
+        style={{ y: yTrack, left: kBell.left, scale: kBell.scale, opacity: kBell.opacity, rotate: kBell.rotate }} 
+        className="absolute w-14 h-14 -ml-7 md:w-28 md:h-28 md:-ml-14 filter drop-shadow-[0_0_15px_rgba(234,179,8,0.2)]"
+      >
+        <svg width="100%" height="100%" viewBox="0 0 100 100" fill="none">
+          <path d="M35 45 C35 25 65 25 65 45" stroke="#eab308" strokeWidth="8" fill="none" strokeLinecap="round" />
+          <path d="M40 45 C40 32 60 32 60 45" stroke="#18181b" strokeWidth="4" fill="none" />
+          <circle cx="50" cy="65" r="28" fill="#18181b" stroke="#eab308" strokeWidth="3" />
+          <text x="50" y="68" fill="#eab308" fontSize="11" fontWeight="900" textAnchor="middle">16</text>
+          <text x="50" y="77" fill="#52525b" fontSize="6" fontWeight="700" textAnchor="middle">KG</text>
+        </svg>
+      </motion.div>
+
+      {/* 4. Helical Shaker Bottle */}
+      <motion.div 
+        style={{ y: yTrack, left: shaker.left, scale: shaker.scale, opacity: shaker.opacity, rotate: shaker.rotate }} 
+        className="absolute w-14 h-14 -ml-7 md:w-28 md:h-28 md:-ml-14 filter drop-shadow-[0_0_15px_rgba(234,179,8,0.2)]"
+      >
+        <svg width="100%" height="100%" viewBox="0 0 100 100" fill="none">
+          <path d="M35 30 L65 30 L60 85 L40 85 Z" fill="#18181b" stroke="#eab308" strokeWidth="2.5" />
+          <rect x="32" y="22" width="36" height="8" rx="2" fill="#27272a" stroke="#eab308" strokeWidth="2" />
+          <path d="M46 22 L46 14 C46 11 54 11 54 14 L54 22" fill="none" stroke="#eab308" strokeWidth="2.5" strokeLinecap="round" />
+          <line x1="42" y1="42" x2="48" y2="42" stroke="#52525b" strokeWidth="2" />
+          <line x1="42" y1="54" x2="52" y2="54" stroke="#eab308" strokeWidth="2" />
+          <line x1="42" y1="66" x2="48" y2="66" stroke="#52525b" strokeWidth="2" />
+          <line x1="42" y1="78" x2="52" y2="78" stroke="#eab308" strokeWidth="2" />
+        </svg>
+      </motion.div>
+
+      {/* 5. Helical Training Shoes */}
+      <motion.div 
+        style={{ y: yTrack, left: shoes.left, scale: shoes.scale, opacity: shoes.opacity, rotate: shoes.rotate }} 
+        className="absolute w-16 h-16 -ml-8 md:w-32 md:h-32 md:-ml-16 filter drop-shadow-[0_0_20px_rgba(234,179,8,0.25)]"
+      >
+        <svg width="100%" height="100%" viewBox="0 0 100 100" fill="none">
+          <path d="M15 72 C35 76 65 76 85 70 L82 78 C65 82 35 82 15 78 Z" fill="#27272a" stroke="#eab308" strokeWidth="2" />
+          <path d="M15 72 C10 65 18 55 30 52 C35 44 45 35 60 38 C70 40 75 50 85 70 Z" fill="#18181b" stroke="#eab308" strokeWidth="2.5" strokeLinejoin="round" />
+          <line x1="46" y1="48" x2="54" y2="44" stroke="#eab308" strokeWidth="2" strokeLinecap="round" />
+          <line x1="42" y1="54" x2="50" y2="50" stroke="#eab308" strokeWidth="2" strokeLinecap="round" />
+          <path d="M30 68 C45 60 60 62 72 68" stroke="#eab308" strokeWidth="2.5" strokeLinecap="round" fill="none" />
+        </svg>
+      </motion.div>
     </div>
   );
 }
