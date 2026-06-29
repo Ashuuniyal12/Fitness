@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "../../context/AuthContext";
 
-const API = "http://localhost:5000";
+const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 interface Member { id: string; email: string; profile?: { name: string } }
 interface AttendanceRecord { userId: string; date: string }

@@ -14,7 +14,7 @@ interface Gym {
   _count?: { users: number };
 }
 
-const API = "http://localhost:5000";
+const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 export default function GymsPage() {
   const { user, token } = useAuth();

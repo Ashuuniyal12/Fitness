@@ -334,13 +334,13 @@ export default function MarketingPage() {
           </nav>
           <div className="flex items-center gap-4">
             <button
-              onClick={() => window.open('http://localhost:3002', '_blank')}
+              onClick={() => window.open(process.env.NEXT_PUBLIC_MEMBER_PORTAL_URL || 'https://maximus-fitness-member.vercel.app/', '_blank')}
               className="px-4 py-2 text-xs font-bold uppercase border border-zinc-800 rounded-lg hover:border-yellow-400 transition"
             >
               Member Login
             </button>
             <button
-              onClick={() => window.open('http://localhost:3001', '_blank')}
+              onClick={() => window.open(process.env.NEXT_PUBLIC_ADMIN_PORTAL_URL || 'https://maximus-fitness-admin.vercel.app/', '_blank')}
               className="px-4 py-2 text-xs font-bold uppercase bg-yellow-400 text-black rounded-lg hover:bg-yellow-300 shadow-[0_0_15px_rgba(250,204,21,0.25)] transition"
             >
               Staff Portal

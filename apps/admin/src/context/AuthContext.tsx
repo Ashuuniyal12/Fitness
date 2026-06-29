@@ -35,7 +35,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const fetchBackendUser = async (userId: string, jwtToken: string): Promise<UserProfile | null> => {
     try {
-      const res = await fetch(`http://localhost:5000/users/${userId}`, {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+      const res = await fetch(`${apiUrl}/users/${userId}`, {
         headers: {
           'Authorization': `Bearer ${jwtToken}`
         }
@@ -60,7 +61,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (backendProfile) {
           // If a member logs in to the admin dashboard, redirect them to member portal
           if (backendProfile.role === 'MEMBER') {
-            window.location.href = 'http://localhost:3002';
+            window.location.href = process.env.NEXT_PUBLIC_MEMBER_PORTAL_URL || 'https://maximus-fitness-member.vercel.app/';
             return;
           }
           setUser(backendProfile);
@@ -80,7 +81,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const backendProfile = await fetchBackendUser(session.user.id, session.access_token);
         if (backendProfile) {
           if (backendProfile.role === 'MEMBER') {
-            window.location.href = 'http://localhost:3002';
+            window.location.href = process.env.NEXT_PUBLIC_MEMBER_PORTAL_URL || 'https://maximus-fitness-member.vercel.app/';
             return;
           }
           setUser(backendProfile);

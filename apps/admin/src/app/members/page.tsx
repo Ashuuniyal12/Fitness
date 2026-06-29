@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect } from "react";
 import { useAuth } from "../../context/AuthContext";
@@ -18,7 +18,7 @@ interface Gym {
   name: string;
 }
 
-const API = "http://localhost:5000";
+const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 const STATUS_STYLES: Record<string, string> = {
   ACTIVE: "badge-active",

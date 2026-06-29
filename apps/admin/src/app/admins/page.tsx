@@ -18,7 +18,7 @@ interface Gym {
   name: string;
 }
 
-const API = "http://localhost:5000";
+const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 export default function AdminsPage() {
   const { user, token } = useAuth();
