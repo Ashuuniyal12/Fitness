@@ -15,64 +15,258 @@ import { LocationMap } from '../components/LocationMap';
 import { CircularPrograms } from '../components/CircularPrograms';
 import { BmiCalculatorComponent } from '../components/BmiCalculatorComponent';
 
-interface PricingCardProps {
-  titleBadge: string;
-  priceLabel: number;
-  priceSuffix: string;
-  features: string[];
-  cta: string;
-  className?: string;
-  popular?: boolean;
+interface Variant {
+  type: string;
+  price: number;
+  description?: string;
+  monthlyEquivalent?: number;
+  saving?: number;
 }
 
-const PricingCard = ({ titleBadge, priceLabel, priceSuffix, features, cta, className, popular }: PricingCardProps) => {
-  const formattedPrice = new Intl.NumberFormat('en-IN', {
+interface Plan {
+  id: string;
+  name: string;
+  duration: string;
+  badge?: string;
+  variants: Variant[];
+}
+
+const membershipPlans: Plan[] = [
+  {
+    id: "starter",
+    name: "Starter",
+    duration: "1 Month",
+    variants: [
+      {
+        type: "Strength Training",
+        price: 1000,
+        description: "Unlimited access to strength training equipment."
+      }
+    ]
+  },
+  {
+    id: "warrior",
+    name: "Warrior",
+    duration: "1 Month",
+    variants: [
+      {
+        type: "Strength + Cardio",
+        price: 1500,
+        description: "Unlimited access to strength training and cardio equipment."
+      }
+    ]
+  },
+  {
+    id: "beast",
+    name: "Beast Mode",
+    duration: "3 Months",
+    badge: "Most Popular",
+    variants: [
+      {
+        type: "Strength Training",
+        price: 2700,
+        monthlyEquivalent: 900,
+        saving: 300
+      },
+      {
+        type: "Strength + Cardio",
+        price: 4000,
+        monthlyEquivalent: 1333,
+        saving: 500
+      }
+    ]
+  },
+  {
+    id: "titan",
+    name: "Titan",
+    duration: "6 Months",
+    variants: [
+      {
+        type: "Strength Training",
+        price: 5000,
+        monthlyEquivalent: 833,
+        saving: 1000
+      },
+      {
+        type: "Strength + Cardio",
+        price: 7500,
+        monthlyEquivalent: 1250,
+        saving: 1500
+      }
+    ]
+  },
+  {
+    id: "legacy",
+    name: "Legacy",
+    duration: "12 Months",
+    badge: "Best Value",
+    variants: [
+      {
+        type: "Strength Training",
+        price: 10000,
+        monthlyEquivalent: 833,
+        saving: 2000
+      },
+      {
+        type: "Strength + Cardio",
+        price: 15000,
+        monthlyEquivalent: 1250,
+        saving: 3000
+      }
+    ]
+  }
+];
+
+interface PlanCardProps {
+  plan: Plan;
+  globalType: 'strength' | 'cardio';
+}
+
+function PlanCard({ plan, globalType }: PlanCardProps) {
+  const hasBoth = plan.variants.length > 1;
+  const [localType, setLocalType] = React.useState<'strength' | 'cardio'>('cardio');
+
+  React.useEffect(() => {
+    if (hasBoth) {
+      setLocalType(globalType);
+    } else {
+      const vType = plan.variants[0].type === "Strength Training" ? 'strength' : 'cardio';
+      setLocalType(vType);
+    }
+  }, [globalType, hasBoth, plan.variants]);
+
+  const selectedVariant = plan.variants.find(v => {
+    const isStrength = v.type === "Strength Training";
+    return (localType === 'strength' && isStrength) || (localType === 'cardio' && !isStrength);
+  }) || plan.variants[0];
+
+  const isStrengthSelected = localType === 'strength';
+  const popular = plan.id === "beast";
+  const bestValue = plan.id === "legacy";
+
+  const formattedTotal = new Intl.NumberFormat('en-IN', {
     style: 'currency',
     currency: 'INR',
     maximumFractionDigits: 0
-  }).format(priceLabel);
+  }).format(selectedVariant.price);
+
+  const formattedMonthly = selectedVariant.monthlyEquivalent 
+    ? new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(selectedVariant.monthlyEquivalent)
+    : null;
+
+  const features = plan.id === "starter" 
+    ? ["Full strength floor access", "Locker room access", "Basic workout chart", "Standard gym hours"]
+    : plan.id === "warrior"
+    ? ["Strength & cardio access", "Locker room access", "Basic workout chart", "Standard gym hours"]
+    : plan.id === "beast"
+    ? ["Unrestricted Gym Access", "Standard Cardio Floor", "1 Diet Consultation", "Basic Progress Audits"]
+    : plan.id === "titan"
+    ? ["24/7 Premium Access", "All Strength & Cardio floors", "2 Diet Audits / Month", "2 Personal Trainer sessions"]
+    : ["Lifetime Member Badge", "24/7 Access to all facilities", "Weekly diet audits", "5 Personal Trainer sessions", "Priority session bookings"];
 
   return (
-    <div className={`bg-gradient-to-br from-white/5 to-white/[0.01] border border-white/10 backdrop-blur-[14px] backdrop-brightness-[0.91] relative overflow-hidden rounded-2xl flex flex-col p-6 h-full transition-all duration-500 hover:border-yellow-400/20 ${popular ? 'ring-2 ring-yellow-400/20 border-yellow-400/30' : ''} ${className}`}>
-      {popular && (
-        <div className="absolute -top-3.5 right-4 px-3 py-1 text-[10px] font-black uppercase tracking-wider rounded-full bg-yellow-400 text-black">
-          Most Popular
+    <div 
+      className={`bg-gradient-to-br from-white/5 to-white/[0.01] border backdrop-blur-[14px] backdrop-brightness-[0.91] relative overflow-hidden rounded-2xl flex flex-col p-6 min-h-[460px] transition-all duration-500 hover:border-yellow-400/20 ${
+        popular 
+          ? 'border-yellow-400/40 ring-2 ring-yellow-400/20 shadow-[0_0_20px_rgba(234,179,8,0.1)]' 
+          : bestValue 
+          ? 'border-orange-500/30 ring-2 ring-orange-500/10 shadow-[0_0_20px_rgba(249,115,22,0.05)]' 
+          : 'border-white/10'
+      }`}
+    >
+      {plan.badge && (
+        <div className={`absolute top-0 right-4 px-3 py-1 text-[9px] font-black uppercase tracking-wider rounded-b-md ${
+          popular ? 'bg-yellow-400 text-black' : 'bg-orange-500 text-white'
+        }`}>
+          {plan.badge}
         </div>
       )}
-      <div className="flex items-center justify-between gap-3 mb-5">
-        <span className="inline-block px-3 py-1 rounded-full border border-white/10 bg-white/5 text-[10px] font-black uppercase tracking-wider text-zinc-300">
-          {titleBadge}
-        </span>
-        <button 
-          onClick={() => document.getElementById("contact")?.scrollIntoView({ behavior: 'smooth' })}
-          className={`px-4 py-1.5 rounded-full font-black text-[10px] uppercase tracking-wider transition ${
-            popular 
-              ? "bg-yellow-400 hover:bg-yellow-300 text-black shadow-[0_0_15px_rgba(250,204,21,0.2)]" 
-              : "border border-white/10 hover:bg-white/5 text-white"
-          }`}
-        >
-          {cta}
-        </button>
+
+      <div className="mb-4">
+        <h3 className="text-xl font-bold font-sans text-white mb-1 uppercase tracking-wide">{plan.name}</h3>
+        <p className="text-zinc-500 text-xs font-semibold uppercase tracking-wider">{plan.duration} Access</p>
       </div>
-      <div className="flex items-baseline gap-1.5 mb-6">
-        <span className="font-mono text-4xl font-extralight tracking-tight text-white">{formattedPrice}</span>
-        <span className="text-zinc-500 text-xs font-bold uppercase">/{priceSuffix}</span>
+
+      {hasBoth ? (
+        <div className="flex bg-black/40 border border-white/5 p-0.5 rounded-lg mb-6 text-[10px] relative z-20">
+          <button
+            onClick={() => setLocalType('strength')}
+            className={`flex-1 py-1 px-1.5 rounded-md font-bold uppercase tracking-wider transition ${
+              isStrengthSelected ? 'bg-yellow-400 text-black' : 'text-zinc-400 hover:text-white'
+            }`}
+          >
+            Strength
+          </button>
+          <button
+            onClick={() => setLocalType('cardio')}
+            className={`flex-1 py-1 px-1.5 rounded-md font-bold uppercase tracking-wider transition ${
+              !isStrengthSelected ? 'bg-yellow-400 text-black' : 'text-zinc-400 hover:text-white'
+            }`}
+          >
+            Cardio
+          </button>
+        </div>
+      ) : (
+        <div className="mb-6 py-1 px-2 border border-white/5 bg-white/5 rounded-lg text-[9px] font-bold text-zinc-400 uppercase tracking-widest text-center">
+          {plan.variants[0].type}
+        </div>
+      )}
+
+      <div className="mb-6 flex flex-col justify-end">
+        {selectedVariant.saving ? (
+          <div className="mb-2 self-start inline-block px-2 py-0.5 rounded bg-green-500/10 border border-green-500/20 text-[9px] font-black uppercase text-green-400 tracking-wider">
+            Save ₹{selectedVariant.saving}
+          </div>
+        ) : (
+          <div className="h-6" />
+        )}
+        
+        <div className="flex items-baseline gap-1">
+          <span className="font-mono text-4xl font-extralight tracking-tight text-white">{formattedTotal}</span>
+          <span className="text-zinc-500 text-[10px] font-bold uppercase">/ {plan.duration}</span>
+        </div>
+
+        {formattedMonthly && (
+          <p className="text-[11px] text-zinc-400 mt-1 uppercase tracking-wider font-semibold">
+            {formattedMonthly}<span className="text-zinc-500 text-[9px]"> / month</span>
+          </p>
+        )}
+        
+        {selectedVariant.description && (
+          <p className="text-[11px] text-zinc-500 mt-1 leading-normal italic font-sans">
+            {selectedVariant.description}
+          </p>
+        )}
       </div>
-      <ul className="grid gap-3 text-[13px] text-zinc-300 mt-auto">
-        {features.map((f, i) => (
-          <li key={i} className="flex items-center gap-3">
-            <div className="bg-yellow-400 text-black rounded-full p-0.5 flex-shrink-0">
-              <svg className="w-3 h-3 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3">
+
+      <ul className="grid gap-2.5 text-[12px] text-zinc-300 mb-8 mt-2">
+        {features.map((feature, idx) => (
+          <li key={idx} className="flex items-start gap-2.5">
+            <div className="bg-yellow-400/20 text-yellow-400 rounded-full p-0.5 flex-shrink-0 mt-0.5">
+              <svg className="w-2.5 h-2.5 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"></path>
               </svg>
             </div>
-            <span className="leading-relaxed text-left">{f}</span>
+            <span className="leading-tight text-left">{feature}</span>
           </li>
         ))}
       </ul>
+
+      <button 
+        onClick={() => document.getElementById("contact")?.scrollIntoView({ behavior: 'smooth' })}
+        className={`w-full py-2.5 rounded-lg font-black text-xs uppercase tracking-widest mt-auto transition ${
+          popular 
+            ? "bg-yellow-400 hover:bg-yellow-300 text-black shadow-[0_0_15px_rgba(250,204,21,0.2)]" 
+            : bestValue
+            ? "bg-orange-500 hover:bg-orange-400 text-white shadow-[0_0_15px_rgba(249,115,22,0.15)]"
+            : "border border-white/10 hover:bg-white/5 text-white"
+        }`}
+      >
+        Join Now
+      </button>
     </div>
   );
-};
+}
 
 const testimonials = [
   {
@@ -174,6 +368,7 @@ export default function MarketingPage() {
   const [loadingProgress, setLoadingProgress] = React.useState(0);
   const [loaderWord, setLoaderWord] = React.useState('POWER');
   const [loaderFinished, setLoaderFinished] = React.useState(false);
+  const [globalType, setGlobalType] = React.useState<'strength' | 'cardio'>('cardio');
 
   const tiles = Array.from({ length: 48 }, (_, i) => ({ r: Math.floor(i / 8), c: i % 8 }));
 
@@ -362,6 +557,13 @@ export default function MarketingPage() {
           .animate-marquee-loop {
             animation: marqueeLoop 30s linear infinite;
           }
+          .scrollbar-none::-webkit-scrollbar {
+            display: none;
+          }
+          .scrollbar-none {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+          }
           html, body {
             cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Cg transform='rotate(45 16 16)'%3E%3Cline x1='2' y1='16' x2='30' y2='16' stroke='%23eab308' stroke-width='2' stroke-linecap='round'/%3E%3Crect x='5' y='14' width='2' height='4' rx='0.5' fill='%23eab308'/%3E%3Crect x='7' y='10' width='2.5' height='12' rx='1' fill='%2327272a' stroke='%23eab308' stroke-width='1'/%3E%3Crect x='10' y='8' width='3' height='16' rx='1' fill='%2318181b' stroke='%23eab308' stroke-width='1'/%3E%3Crect x='25' y='14' width='2' height='4' rx='0.5' fill='%23eab308'/%3E%3Crect x='22.5' y='10' width='2.5' height='12' rx='1' fill='%2327272a' stroke='%23eab308' stroke-width='1'/%3E%3Crect x='19' y='8' width='3' height='16' rx='1' fill='%2318181b' stroke='%23eab308' stroke-width='1'/%3E%3C/g%3E%3C/svg%3E") 6 6, auto !important;
           }
@@ -443,7 +645,7 @@ export default function MarketingPage() {
 
       {/* Membership Plans */}
       <section id="plans" className="py-24 bg-black border-t border-zinc-950 relative overflow-hidden">
-        <div className="max-w-7xl mx-auto px-6 space-y-16 relative z-10">
+        <div className="max-w-7xl mx-auto px-6 space-y-12 relative z-10">
           <div className="text-center space-y-3">
             <span className="text-xs font-black uppercase tracking-widest text-yellow-400">Membership Options</span>
             <h2 className="grindy-brush text-[40px] md:text-[56px] leading-tight tracking-wide bg-clip-text text-transparent bg-gradient-to-r from-yellow-400 to-white uppercase pb-1">
@@ -453,123 +655,128 @@ export default function MarketingPage() {
               Start your training journey today. Flexible options tailored to match your evolution.
             </p>
           </div>
+
+          {/* Global Toggle Switch */}
+          <div className="flex justify-center items-center gap-4 mb-6 relative z-30">
+            <button
+              onClick={() => setGlobalType('strength')}
+              className={`text-xs font-black uppercase tracking-wider transition ${
+                globalType === 'strength' ? 'text-yellow-400' : 'text-zinc-500 hover:text-zinc-300'
+              }`}
+            >
+              Strength Only
+            </button>
+            <button
+              onClick={() => setGlobalType(prev => prev === 'strength' ? 'cardio' : 'strength')}
+              className="w-12 h-6 bg-zinc-900 rounded-full p-0.5 border border-white/10 transition relative focus:outline-none"
+            >
+              <div 
+                className={`w-4 h-4 rounded-full bg-yellow-400 transition-all duration-300 transform ${
+                  globalType === 'cardio' ? 'translate-x-6' : 'translate-x-0'
+                }`}
+              />
+            </button>
+            <button
+              onClick={() => setGlobalType('cardio')}
+              className={`text-xs font-black uppercase tracking-wider transition ${
+                globalType === 'cardio' ? 'text-yellow-400' : 'text-zinc-500 hover:text-zinc-300'
+              }`}
+            >
+              Strength + Cardio
+            </button>
+          </div>
           
-          <div className="relative w-full max-w-5xl mx-auto rounded-3xl overflow-hidden p-2">
+          <div className="relative w-full max-w-7xl mx-auto rounded-3xl overflow-hidden p-2">
             {/* WebGL background rotating rings shader - kept strictly within the bento grid boundary */}
             <PricingShader />
             
+            {/* Horizontal swipe for mobile, standard grids for tablet/desktop */}
             <motion.div 
               variants={staggerContainer}
               initial="hidden"
               whileInView="visible"
               viewport={{ once: true, margin: "-100px" }}
-              className="relative z-10 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-8 w-full"
+              className="relative z-10 flex overflow-x-auto snap-x snap-mandatory scrollbar-none gap-4 px-2 pb-6 md:grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 md:overflow-x-visible md:px-0 w-full"
             >
-              {/* 1. Large Featured Card (Annual Elite) - lg:col-span-5 */}
-              <motion.div
-                variants={fadeInUpVariant}
-                className="bg-gradient-to-br from-white/5 to-white/[0.01] border border-yellow-400/30 ring-2 ring-yellow-400/20 backdrop-blur-[14px] backdrop-brightness-[0.91] relative w-full overflow-hidden rounded-2xl p-6 lg:col-span-5 flex flex-col justify-between transition-all duration-300 min-h-[300px]"
-              >
-                {/* Grid backdrop patterns */}
-                <div className="pointer-events-none absolute inset-0 z-0 opacity-10 bg-[linear-gradient(to_right,rgba(250,204,21,0.08)_1px,transparent_1px)] bg-[size:24px]" />
-                
-                <div className="relative z-10 flex items-center justify-between gap-3 mb-5">
-                  <div className="flex items-center gap-2">
-                    <span className="inline-block px-3 py-1 rounded-full border border-yellow-400/20 bg-yellow-400/10 text-[10px] font-black uppercase tracking-wider text-yellow-400">
-                      ANNUAL ELITE
-                    </span>
-                    <span className="hidden sm:inline-block px-3 py-1 rounded-full border border-white/10 bg-white/5 text-[10px] font-black uppercase tracking-wider text-zinc-300">
-                      ⚡ Most Recommended
-                    </span>
-                  </div>
-                  <button 
-                    onClick={() => document.getElementById("contact")?.scrollIntoView({ behavior: 'smooth' })}
-                    className="px-5 py-2 rounded-full font-black text-[10px] uppercase tracking-wider bg-yellow-400 hover:bg-yellow-300 text-black shadow-[0_0_15px_rgba(250,204,21,0.3)] transition"
-                  >
-                    Join Elite
-                  </button>
-                </div>
-
-                <div className="relative z-10 flex flex-col lg:flex-row gap-6 mt-4">
-                  <div className="lg:w-[35%] flex flex-col justify-center">
-                    <div className="flex items-baseline gap-1.5">
-                      <span className="font-mono text-5xl font-extralight tracking-tight text-white">
-                        {new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(9000)}
-                      </span>
-                      <span className="text-zinc-500 text-xs font-bold uppercase">/year</span>
-                    </div>
-                    <p className="text-[11px] text-zinc-500 mt-2 uppercase tracking-wider font-semibold">
-                      Equivalent to ₹750/month
-                    </p>
-                  </div>
-                  <ul className="grid gap-3 text-[13px] text-zinc-300 lg:w-[65%]">
-                    {[
-                      'All Premium Gym Access & Utilities',
-                      '10 Personal Trainer 1-on-1 Sessions',
-                      'Free Shaker & Premium Gym Wear bundle',
-                      'Regular 3D Body Composition Audits'
-                    ].map((feature, idx) => (
-                      <li key={idx} className="flex items-center gap-3">
-                        <div className="bg-yellow-400 text-black rounded-full p-0.5 flex-shrink-0">
-                          <svg className="w-3 h-3 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"></path>
-                          </svg>
-                        </div>
-                        <span className="leading-relaxed text-left">{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </motion.div>
-
-              {/* 2. Monthly Core Card - lg:col-span-3 */}
-              <motion.div variants={fadeInUpVariant} className="lg:col-span-3">
-                <PricingCard
-                  titleBadge="MONTHLY CORE"
-                  priceLabel={1000}
-                  priceSuffix="month"
-                  cta="Join Core"
-                  features={[
-                    'Full Gym Floor Access',
-                    'Basic Workout Chart',
-                    'Locker Room Access',
-                    'Standard Gym Hours'
-                  ]}
-                />
-              </motion.div>
-
-              {/* 3. Quarterly Premium Card - lg:col-span-4 */}
-              <motion.div variants={fadeInUpVariant} className="lg:col-span-4">
-                <PricingCard
-                  titleBadge="QUARTERLY PREMIUM"
-                  priceLabel={2700}
-                  priceSuffix="3 months"
-                  cta="Join Premium"
-                  features={[
-                    '24/7 Unlimited Gym Access',
-                    'AI Trainer Workout Builder',
-                    '2 Diet Consultations/mo',
-                    'Free Gym Shaker Cup'
-                  ]}
-                />
-              </motion.div>
-
-              {/* 4. Couple Elite Card - lg:col-span-4 */}
-              <motion.div variants={fadeInUpVariant} className="lg:col-span-4">
-                <PricingCard
-                  titleBadge="COUPLE ELITE"
-                  priceLabel={16000}
-                  priceSuffix="year"
-                  cta="Join Couple"
-                  features={[
-                    'All Elite Access for 2 Members',
-                    'Joint Trainer Audit Reviews',
-                    'Double Streak XP Multipliers',
-                    'Dual Shakers & Gym Wear Pack'
-                  ]}
-                />
-              </motion.div>
+              {membershipPlans.map((plan) => (
+                <motion.div 
+                  key={plan.id}
+                  variants={fadeInUpVariant} 
+                  className="min-w-[280px] w-[80vw] sm:w-[320px] snap-center flex-shrink-0 md:w-auto md:min-w-0"
+                >
+                  <PlanCard plan={plan} globalType={globalType} />
+                </motion.div>
+              ))}
             </motion.div>
+          </div>
+
+          {/* Comparison Matrix Table */}
+          <div className="mt-16 w-full max-w-5xl mx-auto border border-white/10 rounded-2xl overflow-hidden backdrop-blur-md bg-black/40 relative z-20">
+            <div className="p-6 border-b border-white/10 bg-white/[0.02] text-left">
+              <h3 className="text-lg font-bold font-sans text-white uppercase tracking-wider">
+                Plan Comparison Matrix
+              </h3>
+              <p className="text-zinc-500 text-xs mt-1 uppercase tracking-wider">
+                Compare access tiers and features across all memberships
+              </p>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse text-xs md:text-sm">
+                <thead>
+                  <tr className="border-b border-white/5 bg-black/60 text-[10px] font-black uppercase text-zinc-500 tracking-wider">
+                    <th className="p-4">Membership Tier</th>
+                    <th className="p-4 text-center">Duration</th>
+                    <th className="p-4 text-center">Strength Floor</th>
+                    <th className="p-4 text-center">Cardio Access</th>
+                    <th className="p-4 text-center">Diet Consults</th>
+                    <th className="p-4 text-center">Trainer Audits</th>
+                    <th className="p-4 text-center">XP Multiplier</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-white/5 text-zinc-300">
+                  {[
+                    { name: "Starter", duration: "1 Month", strength: "Full", cardio: "No", diets: "No", pt: "No", xp: "1.0x" },
+                    { name: "Warrior", duration: "1 Month", strength: "Full", cardio: "Full", diets: "No", pt: "No", xp: "1.0x" },
+                    { name: "Beast Mode", duration: "3 Months", strength: "Full", cardio: "Full", diets: "1 / month", pt: "Basic", xp: "1.5x", highlight: true },
+                    { name: "Titan", duration: "6 Months", strength: "Full", cardio: "Full", diets: "2 / month", pt: "2 Sessions", xp: "2.0x" },
+                    { name: "Legacy", duration: "12 Months", strength: "Full", cardio: "Full", diets: "Weekly", pt: "5 Sessions", xp: "3.0x", valueHighlight: true }
+                  ].map((row, idx) => (
+                    <tr 
+                      key={idx} 
+                      className={`transition hover:bg-white/[0.02] ${
+                        row.highlight 
+                          ? 'bg-yellow-400/[0.03]' 
+                          : row.valueHighlight 
+                          ? 'bg-orange-500/[0.03]' 
+                          : ''
+                      }`}
+                    >
+                      <td className="p-4 font-bold text-white uppercase tracking-wide flex items-center gap-2">
+                        <span>{row.name}</span>
+                        {row.highlight && (
+                          <span className="text-[8px] px-1.5 py-0.5 rounded bg-yellow-400 text-black font-black uppercase tracking-wider">POPULAR</span>
+                        )}
+                        {row.valueHighlight && (
+                          <span className="text-[8px] px-1.5 py-0.5 rounded bg-orange-500 text-white font-black uppercase tracking-wider font-sans">VALUE</span>
+                        )}
+                      </td>
+                      <td className="p-4 text-center font-mono text-zinc-400">{row.duration}</td>
+                      <td className="p-4 text-center text-yellow-400 font-bold">{row.strength}</td>
+                      <td className="p-4 text-center">
+                        {row.cardio === "Full" ? (
+                          <span className="text-yellow-400 font-bold">Yes</span>
+                        ) : (
+                          <span className="text-zinc-600">—</span>
+                        )}
+                      </td>
+                      <td className="p-4 text-center font-mono text-zinc-400">{row.diets}</td>
+                      <td className="p-4 text-center font-mono text-zinc-400">{row.pt}</td>
+                      <td className="p-4 text-center font-mono text-yellow-400 font-bold">{row.xp}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       </section>
