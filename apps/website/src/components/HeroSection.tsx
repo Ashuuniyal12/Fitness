@@ -113,10 +113,13 @@ const Lightning: React.FC<LightningProps> = ({
       void mainImage( out vec4 fragColor, in vec2 fragCoord ) {
           vec2 uv = fragCoord / iResolution.xy;
           uv = 2.0 * uv - 1.0;
-          uv.x *= iResolution.x / iResolution.y;
+          float aspect = iResolution.x / iResolution.y;
+          uv.x *= aspect;
           uv.x += uXOffset;
           
-          uv += 2.0 * fbm(uv * uSize + 0.8 * iTime * uSpeed) - 1.0;
+          float n = 2.0 * fbm(uv * uSize + 0.8 * iTime * uSpeed) - 1.0;
+          uv.x += n * clamp(aspect * 0.45, 0.2, 0.55);
+          uv.y += n;
           
           float dist = abs(uv.x);
           vec3 baseColor = hsv2rgb(vec3(uHue / 360.0, 0.9, 0.95));
