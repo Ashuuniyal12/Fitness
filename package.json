@@ -11,7 +11,8 @@
     "dev": "turbo run dev",
     "build": "turbo run build",
     "lint": "turbo run lint",
-    "format": "prettier --write \"**/*.{ts,tsx,md}\""
+    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+    "postinstall": "npm run db:generate --workspace=@maximus/database"
   },
   "devDependencies": {
     "prettier": "^3.2.5",
