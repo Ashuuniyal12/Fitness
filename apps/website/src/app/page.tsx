@@ -122,7 +122,7 @@ const testimonials = [
   }
 ];
 
-const TestimonialColumn = ({ testimonials, duration, className }: { testimonials: typeof testimonials, duration: number, className?: string }) => {
+const TestimonialColumn = ({ testimonials, duration, className }: { testimonials: { text: string; name: string; rating: number }[], duration: number, className?: string }) => {
   return (
     <div className={className}>
       <motion.div

@@ -30,6 +30,7 @@ interface MembershipRecord {
     phone?: string;
     user: { id: string; email: string };
   };
+  createdAt: string;
 }
 
 interface Member {
