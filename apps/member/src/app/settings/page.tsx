@@ -275,8 +275,8 @@ export default function MemberSettingsPage() {
               <Field label="Full Name">
                 <input style={inputStyle} value={name} onChange={e => setName(e.target.value)} placeholder="Your name" required />
               </Field>
-              <Field label="Phone">
-                <input style={inputStyle} value={phone} onChange={e => setPhone(e.target.value)} placeholder="+91 00000 00000" />
+              <Field label="Phone *">
+                <input style={inputStyle} value={phone} onChange={e => setPhone(e.target.value)} placeholder="+91 00000 00000" required minLength={10} />
               </Field>
             </div>
 
@@ -312,11 +312,11 @@ export default function MemberSettingsPage() {
           <div style={{ background: "#18181b", border: "1px solid rgba(255,255,255,.07)", borderRadius: 12, padding: "24px 20px", display: "flex", flexDirection: "column", gap: 20 }}>
 
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16 }}>
-              <Field label="Height (cm)">
-                <input type="number" style={inputStyle} value={height} onChange={e => setHeight(e.target.value)} placeholder="175" min={1} step="0.1" />
+              <Field label="Height (cm) *">
+                <input type="number" style={inputStyle} value={height} onChange={e => setHeight(e.target.value)} placeholder="175" min={1} step="0.1" required />
               </Field>
-              <Field label="Weight (kg)">
-                <input type="number" style={inputStyle} value={weight} onChange={e => setWeight(e.target.value)} placeholder="70" min={1} step="0.1" />
+              <Field label="Weight (kg) *">
+                <input type="number" style={inputStyle} value={weight} onChange={e => setWeight(e.target.value)} placeholder="70" min={1} step="0.1" required />
               </Field>
               <Field label="BMI (auto)">
                 <div style={{ ...inputStyle, color: bmi ? (parseFloat(bmi) < 18.5 || parseFloat(bmi) > 25 ? "#f97316" : "#4ade80") : "#52525b", fontWeight: 600, display: "flex", alignItems: "center" }}>

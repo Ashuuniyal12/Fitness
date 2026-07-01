@@ -11,7 +11,7 @@ import { AuthService, ProvisionUserDto } from './auth.service';
 import { SupabaseAuthGuard } from './supabase-auth.guard';
 import { RolesGuard } from './roles.guard';
 import { Roles } from './roles.decorator';
-import { IsEmail, IsString, MinLength, IsOptional, IsUUID } from 'class-validator';
+import { IsEmail, IsString, MinLength, IsOptional, IsUUID, IsNumber } from 'class-validator';
 
 export class CreateAdminDto {
   @IsEmail()
@@ -47,8 +47,14 @@ export class CreateMemberDto {
   name: string;
 
   @IsString()
-  @IsOptional()
-  phone?: string;
+  @MinLength(10)
+  phone: string;
+
+  @IsNumber()
+  height: number;
+
+  @IsNumber()
+  weight: number;
 
   @IsUUID()
   @IsOptional()

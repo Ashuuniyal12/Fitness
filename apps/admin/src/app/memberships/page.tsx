@@ -325,82 +325,84 @@ export default function MembershipsPage() {
                 <p>{search ? "No memberships match your search." : 'No memberships yet. Click "Assign Membership" to add one.'}</p>
               </div>
             ) : (
-              <table className="table">
-                <thead>
-                  <tr>
-                    <th>Member</th>
-                    <th>Plan</th>
-                    <th>Start</th>
-                    <th>Expiry</th>
-                    <th>Days Left</th>
-                    <th>Status</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredMemberships.map(m => {
-                    const days = daysLeft(m.endDate);
-                    const isExpiring = m.status === "ACTIVE" && days <= 7 && days > 0;
-                    const isExpired = days <= 0 && m.status === "ACTIVE";
-                    return (
-                      <tr key={m.id}>
-                        <td>
-                          <div className="user-cell">
-                            <div className="avatar">{m.profile.name.charAt(0).toUpperCase()}</div>
-                            <div>
-                              <div className="cell-name">{m.profile.name}</div>
-                              <div className="cell-sub">{m.profile.user.email}</div>
+              <div className="table-container">
+                <table className="table">
+                  <thead>
+                    <tr>
+                      <th>Member</th>
+                      <th>Plan</th>
+                      <th>Start</th>
+                      <th>Expiry</th>
+                      <th>Days Left</th>
+                      <th>Status</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredMemberships.map(m => {
+                      const days = daysLeft(m.endDate);
+                      const isExpiring = m.status === "ACTIVE" && days <= 7 && days > 0;
+                      const isExpired = days <= 0 && m.status === "ACTIVE";
+                      return (
+                        <tr key={m.id}>
+                          <td>
+                            <div className="user-cell">
+                              <div className="avatar">{m.profile.name.charAt(0).toUpperCase()}</div>
+                              <div>
+                                <div className="cell-name">{m.profile.name}</div>
+                                <div className="cell-sub">{m.profile.user.email}</div>
+                              </div>
                             </div>
-                          </div>
-                        </td>
-                        <td>
-                          <div className="plan-cell">
-                            <span className="plan-name">{m.plan.name}</span>
-                            <span className="plan-price">₹{Number(m.plan.price).toLocaleString()}</span>
-                          </div>
-                        </td>
-                        <td className="muted">{fmt(m.startDate)}</td>
-                        <td className={isExpiring ? "text-warning" : isExpired ? "text-danger" : "muted"}>{fmt(m.endDate)}</td>
-                        <td>
-                          {m.status === "ACTIVE" ? (
-                            <span className={`days-pill ${days <= 0 ? "expired" : days <= 7 ? "expiring" : "ok"}`}>
-                              {days <= 0 ? "Expired" : `${days}d`}
-                            </span>
-                          ) : "—"}
-                        </td>
-                        <td>
-                          <span className={`badge ${STATUS_BADGE[m.status] || "badge-active"}`}>{m.status}</span>
-                        </td>
-                        <td>
-                          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                            <select
-                              className="status-select"
-                              value={m.status}
-                              disabled={updatingId === m.id || renewingId === m.id}
-                              onChange={e => handleStatusChange(m.id, e.target.value as MembershipRecord["status"])}
-                            >
-                              <option value="ACTIVE">Active</option>
-                              <option value="FROZEN">Frozen</option>
-                              <option value="EXPIRED">Expired</option>
-                              <option value="CANCELLED">Cancelled</option>
-                            </select>
-                            {(m.status === "EXPIRED" || m.status === "CANCELLED" || (m.status === "ACTIVE" && daysLeft(m.endDate) <= 7)) && (
-                              <button
-                                className="btn-renew"
-                                disabled={renewingId === m.id}
-                                onClick={() => handleRenew(m.id, m.profile.name)}
-                                title="Renew membership"
+                          </td>
+                          <td>
+                            <div className="plan-cell">
+                              <span className="plan-name">{m.plan.name}</span>
+                              <span className="plan-price">₹{Number(m.plan.price).toLocaleString()}</span>
+                            </div>
+                          </td>
+                          <td className="muted">{fmt(m.startDate)}</td>
+                          <td className={isExpiring ? "text-warning" : isExpired ? "text-danger" : "muted"}>{fmt(m.endDate)}</td>
+                          <td>
+                            {m.status === "ACTIVE" ? (
+                              <span className={`days-pill ${days <= 0 ? "expired" : days <= 7 ? "expiring" : "ok"}`}>
+                                {days <= 0 ? "Expired" : `${days}d`}
+                              </span>
+                            ) : "—"}
+                          </td>
+                          <td>
+                            <span className={`badge ${STATUS_BADGE[m.status] || "badge-active"}`}>{m.status}</span>
+                          </td>
+                          <td>
+                            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                              <select
+                                className="status-select"
+                                value={m.status}
+                                disabled={updatingId === m.id || renewingId === m.id}
+                                onChange={e => handleStatusChange(m.id, e.target.value as MembershipRecord["status"])}
                               >
-                                {renewingId === m.id ? "…" : "Renew"}
-                              </button>
-                            )}
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+                                <option value="ACTIVE">Active</option>
+                                <option value="FROZEN">Frozen</option>
+                                <option value="EXPIRED">Expired</option>
+                                <option value="CANCELLED">Cancelled</option>
+                              </select>
+                              {(m.status === "EXPIRED" || m.status === "CANCELLED" || (m.status === "ACTIVE" && daysLeft(m.endDate) <= 7)) && (
+                                <button
+                                  className="btn-renew"
+                                  disabled={renewingId === m.id}
+                                  onClick={() => handleRenew(m.id, m.profile.name)}
+                                  title="Renew membership"
+                                >
+                                  {renewingId === m.id ? "…" : "Renew"}
+                                </button>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
             )}
           </div>
         </>
@@ -571,9 +573,10 @@ export default function MembershipsPage() {
         .search-input { width: 100%; background: rgba(39,39,42,.8); border: 1px solid rgba(255,255,255,.08); border-radius: 10px; padding: 10px 14px 10px 38px; color: #f4f4f5; font-size: 13px; outline: none; box-sizing: border-box; }
         .search-input::placeholder { color: #52525b; }
         .search-input:focus { border-color: rgba(234,179,8,.4); }
+        .table-container { overflow-x: auto; overflow-y: auto; max-height: calc(100vh - 220px); position: relative; }
         .card { background: rgba(24,24,27,.8); border: 1px solid rgba(255,255,255,.06); border-radius: 14px; overflow: hidden; }
-        .table { width: 100%; border-collapse: collapse; }
-        .table th { padding: 12px 16px; text-align: left; font-size: 11px; font-weight: 600; color: #71717a; text-transform: uppercase; letter-spacing: .05em; border-bottom: 1px solid rgba(255,255,255,.06); }
+        .table { width: 100%; border-collapse: separate; border-spacing: 0; min-width: 900px; }
+        .table th { position: sticky; top: 0; background: #1c1c1f; z-index: 10; padding: 12px 16px; text-align: left; font-size: 11px; font-weight: 600; color: #71717a; text-transform: uppercase; letter-spacing: .05em; border-bottom: 1px solid rgba(255,255,255,.06); }
         .table td { padding: 13px 16px; font-size: 13px; color: #d4d4d8; border-bottom: 1px solid rgba(255,255,255,.04); vertical-align: middle; }
         .table tr:last-child td { border-bottom: none; }
         .table tr:hover td { background: rgba(255,255,255,.02); }

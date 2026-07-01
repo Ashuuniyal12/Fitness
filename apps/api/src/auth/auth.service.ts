@@ -13,6 +13,8 @@ export interface ProvisionUserDto {
   name: string;
   phone?: string;
   gymId?: string;
+  height?: number;
+  weight?: number;
 }
 
 @Injectable()
@@ -92,6 +94,8 @@ export class AuthService {
           create: {
             name: dto.name,
             phone: dto.phone || null,
+            height: dto.height || null,
+            weight: dto.weight || null,
           },
         },
       },

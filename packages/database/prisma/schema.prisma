@@ -164,6 +164,7 @@ model Gym {
   blogs            Blog[]
   vendors          Vendor[]
   activityLogs     ActivityLog[]
+  prs              PR[]
 }
 
 model User {
@@ -187,6 +188,7 @@ model User {
   createdDiets     DietPlan[]       @relation("DietCreator")
   recordedExpenses Expense[]
   auditLogs        AuditLog[]
+  prs              PR[]
 
   roleId       String?       @db.Uuid
   roleRef      Role?         @relation(fields: [roleId], references: [id])
@@ -386,12 +388,17 @@ model WorkoutSessionExercise {
 model PR {
   id         String   @id @default(uuid()) @db.Uuid
   memberId   String   @db.Uuid
+  member     User     @relation(fields: [memberId], references: [id])
   exerciseId String   @db.Uuid
   exercise   Exercise @relation(fields: [exerciseId], references: [id])
   maxWeight  Float
+  reps       Int      @default(1)
+  bodyWeight Float?
   status     PRStatus @default(PENDING)
   approvedBy String?  @db.Uuid
   trainer    Trainer? @relation("PRApproval", fields: [approvedBy], references: [id])
+  gymId      String?  @db.Uuid
+  gym        Gym?     @relation(fields: [gymId], references: [id])
   createdAt  DateTime @default(now())
 }
 

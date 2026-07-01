@@ -1,4 +1,4 @@
-import { Injectable, ConflictException, NotFoundException } from '@nestjs/common';
+import { Injectable, ConflictException, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
 
 @Injectable()
@@ -20,6 +20,53 @@ export class AttendanceService {
     return this.prisma.attendance.create({
       data: { gymId, userId, date: today, checkInTime: new Date() },
     });
+  }
+
+  // ── Daily Attendance Code Verification ──────────────────────────────────────
+
+  async generateDailyCode(gymId: string) {
+    // Generate a random 6-character alphanumeric code in uppercase
+    const code = Math.random().toString(36).substring(2, 8).toUpperCase();
+    const expiry = new Date();
+    expiry.setHours(23, 59, 59, 999); // valid until midnight today
+
+    await this.prisma.setting.upsert({
+      where: { gymId_key: { gymId, key: 'attendance_code' } },
+      create: { gymId, key: 'attendance_code', value: code },
+      update: { value: code },
+    });
+
+    await this.prisma.setting.upsert({
+      where: { gymId_key: { gymId, key: 'attendance_code_expiry' } },
+      create: { gymId, key: 'attendance_code_expiry', value: expiry.toISOString() },
+      update: { value: expiry.toISOString() },
+    });
+
+    return { code, expiresAt: expiry };
+  }
+
+  async getDailyCode(gymId: string) {
+    const codeSetting = await this.prisma.setting.findUnique({
+      where: { gymId_key: { gymId, key: 'attendance_code' } }
+    });
+    const expirySetting = await this.prisma.setting.findUnique({
+      where: { gymId_key: { gymId, key: 'attendance_code_expiry' } }
+    });
+
+    if (!codeSetting || !expirySetting) return null;
+
+    const expiry = new Date(expirySetting.value);
+    if (new Date() > expiry) return null; // code is expired
+
+    return { code: codeSetting.value, expiresAt: expiry };
+  }
+
+  async checkInWithCode(userId: string, gymId: string, code: string) {
+    const active = await this.getDailyCode(gymId);
+    if (!active || active.code !== code.toUpperCase()) {
+      throw new BadRequestException('Invalid or expired attendance code');
+    }
+    return this.checkIn(userId, gymId);
   }
 
   // ── Admin mark attendance for any user on any date ──────────────────────────

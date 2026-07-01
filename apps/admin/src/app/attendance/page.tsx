@@ -33,6 +33,9 @@ export default function AttendancePage() {
   const [search,     setSearch]     = useState("");
   const [error,      setError]      = useState("");
 
+  const [dailyCode, setDailyCode] = useState<{ code: string; expiresAt: string } | null>(null);
+  const [generatingCode, setGeneratingCode] = useState(false);
+
   const headers     = { Authorization: `Bearer ${token}` };
   const jsonHeaders = { ...headers, "Content-Type": "application/json" };
 
@@ -60,7 +63,44 @@ export default function AttendancePage() {
     finally { setLoading(false); }
   }, [token, year, month]);
 
-  useEffect(() => { fetchData(); }, [fetchData]);
+  const fetchDailyCode = useCallback(async () => {
+    if (!token) return;
+    try {
+      const res = await fetch(`${API}/attendance/code`, { headers });
+      if (res.ok) {
+        const data = await res.json();
+        setDailyCode(data);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  }, [token]);
+
+  useEffect(() => { 
+    fetchData(); 
+    fetchDailyCode();
+  }, [fetchData, fetchDailyCode]);
+
+  const generateCode = async () => {
+    if (generatingCode || !token) return;
+    setGeneratingCode(true);
+    try {
+      const res = await fetch(`${API}/attendance/generate-code`, {
+        method: "POST",
+        headers,
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setDailyCode(data);
+      } else {
+        setError("Failed to generate code");
+      }
+    } catch {
+      setError("Failed to generate code");
+    } finally {
+      setGeneratingCode(false);
+    }
+  };
 
   // ── Toggle ─────────────────────────────────────────────────────────────────
   const toggle = async (userId: string, date: string) => {
@@ -132,6 +172,100 @@ export default function AttendancePage() {
           </span>
           <button onClick={nextMonth} style={navBtn} disabled={isCurrentMonth}>›</button>
         </div>
+      </div>
+      {/* Daily Verification Code Section */}
+      <div style={{
+        background: "linear-gradient(135deg, #18181b 0%, #1e1b4b 100%)",
+        border: "1px solid rgba(129, 140, 248, 0.2)",
+        borderRadius: 16,
+        padding: 20,
+        display: "flex",
+        flexDirection: "column",
+        gap: 16,
+        boxShadow: "0 4px 20px rgba(0, 0, 0, 0.3)"
+      }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12 }}>
+          <div>
+            <h2 style={{ fontSize: 16, fontWeight: 600, color: "#fafafa", margin: 0, display: "flex", alignItems: "center", gap: 8 }}>
+              <span style={{ display: "inline-block", width: 8, height: 8, borderRadius: "50%", background: dailyCode ? "#22c55e" : "#eab308" }}></span>
+              Daily Check-In Code
+            </h2>
+            <p style={{ fontSize: 12, color: "#a1a1aa", marginTop: 4 }}>
+              Members can enter this code in their member portal to check in automatically.
+            </p>
+          </div>
+          <button
+            onClick={generateCode}
+            disabled={generatingCode}
+            style={{
+              background: "linear-gradient(90deg, #6366f1 0%, #4f46e5 100%)",
+              color: "#ffffff",
+              border: "none",
+              borderRadius: 8,
+              padding: "8px 16px",
+              fontSize: 13,
+              fontWeight: 600,
+              cursor: generatingCode ? "not-allowed" : "pointer",
+              opacity: generatingCode ? 0.7 : 1,
+              transition: "all 0.2s",
+              boxShadow: "0 2px 8px rgba(99, 102, 241, 0.3)"
+            }}
+          >
+            {generatingCode ? "Generating..." : dailyCode ? "Re-generate Code" : "Generate Code"}
+          </button>
+        </div>
+
+        {dailyCode ? (
+          <div style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 20,
+            background: "rgba(24, 24, 27, 0.6)",
+            border: "1px solid rgba(255, 255, 255, 0.05)",
+            borderRadius: 12,
+            padding: 16,
+            flexWrap: "wrap"
+          }}>
+            <div>
+              <div style={{ fontSize: 10, color: "#71717b", textTransform: "uppercase", letterSpacing: ".05em" }}>Active Code</div>
+              <div style={{
+                fontSize: 32,
+                fontWeight: 800,
+                color: "#818cf8",
+                letterSpacing: ".1em",
+                fontFamily: "monospace",
+                marginTop: 2,
+                background: "rgba(129, 140, 248, 0.1)",
+                padding: "2px 12px",
+                borderRadius: 8,
+                display: "inline-block"
+              }}>
+                {dailyCode.code}
+              </div>
+            </div>
+            <div style={{ flex: 1, minWidth: 160 }}>
+              <div style={{ fontSize: 10, color: "#71717b", textTransform: "uppercase", letterSpacing: ".05em" }}>Validity</div>
+              <div style={{ fontSize: 13, color: "#e4e4e7", fontWeight: 500, marginTop: 4 }}>
+                Valid until midnight today
+              </div>
+              <div style={{ fontSize: 11, color: "#71717a", marginTop: 2 }}>
+                Expires: {new Date(dailyCode.expiresAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} ({new Date(dailyCode.expiresAt).toLocaleDateString()})
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div style={{
+            padding: "20px 0",
+            textAlign: "center",
+            background: "rgba(24, 24, 27, 0.3)",
+            borderRadius: 12,
+            border: "1px dashed rgba(255, 255, 255, 0.08)",
+            color: "#71717a",
+            fontSize: 13
+          }}>
+            No active code. Click "Generate Code" above to activate member self check-in.
+          </div>
+        )}
       </div>
 
       {error && (

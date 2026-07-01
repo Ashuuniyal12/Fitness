@@ -9,7 +9,7 @@ interface Member {
   role: string;
   status: "ACTIVE" | "FROZEN" | "SUSPENDED";
   gymId?: string;
-  profile?: { name: string; phone?: string; photoUrl?: string };
+  profile?: { name: string; phone?: string; photoUrl?: string; height?: number; weight?: number };
   createdAt?: string;
 }
 
@@ -39,11 +39,11 @@ export default function MembersPage() {
   const [search, setSearch] = useState("");
 
   // Create form
-  const [form, setForm] = useState({ name: "", email: "", phone: "", password: "", gymId: "" });
+  const [form, setForm] = useState({ name: "", email: "", phone: "", password: "", gymId: "", height: "", weight: "" });
 
   // Edit state
   const [editMember, setEditMember] = useState<Member | null>(null);
-  const [editForm, setEditForm] = useState({ name: "", phone: "", status: "ACTIVE" as Member["status"], gymId: "" });
+  const [editForm, setEditForm] = useState({ name: "", phone: "", status: "ACTIVE" as Member["status"], gymId: "", height: "", weight: "" });
   const [editSubmitting, setEditSubmitting] = useState(false);
 
   const fetchMembers = async () => {
@@ -79,6 +79,8 @@ export default function MembersPage() {
       phone: m.profile?.phone || "",
       status: m.status || "ACTIVE",
       gymId: m.gymId || "",
+      height: m.profile?.height != null ? String(m.profile.height) : "",
+      weight: m.profile?.weight != null ? String(m.profile.weight) : "",
     });
     setError("");
     setSuccess("");
@@ -96,14 +98,19 @@ export default function MembersPage() {
     setSuccess("");
 
     try {
-      // Update profile (name, phone)
+      // Update profile (name, phone, height, weight)
       const profileRes = await fetch(`${API}/users/${editMember.id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ name: editForm.name, phone: editForm.phone || undefined }),
+        body: JSON.stringify({
+          name: editForm.name,
+          phone: editForm.phone,
+          height: parseFloat(editForm.height),
+          weight: parseFloat(editForm.weight),
+        }),
       });
 
       // Update status
@@ -157,9 +164,11 @@ export default function MembersPage() {
         body: JSON.stringify({
           name: form.name,
           email: form.email,
-          phone: form.phone || undefined,
+          phone: form.phone,
           password: form.password,
           gymId: form.gymId || undefined,
+          height: parseFloat(form.height),
+          weight: parseFloat(form.weight),
         }),
       });
       const data = await res.json();
@@ -167,7 +176,7 @@ export default function MembersPage() {
         setError(data.message || "Failed to create member");
       } else {
         setSuccess(`Member "${form.name}" created successfully.`);
-        setForm({ name: "", email: "", phone: "", password: "", gymId: "" });
+        setForm({ name: "", email: "", phone: "", password: "", gymId: "", height: "", weight: "" });
         setShowForm(false);
         await fetchMembers();
       }
@@ -271,13 +280,43 @@ export default function MembersPage() {
                   />
                 </div>
                 <div className="form-field">
-                  <label className="form-label">Phone</label>
+                  <label className="form-label">Phone *</label>
                   <input
                     className="form-input"
                     type="tel"
-                    placeholder="+91 98765 43210"
+                    placeholder="10-digit number"
                     value={form.phone}
                     onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                    required
+                    minLength={10}
+                  />
+                </div>
+              </div>
+              <div className="form-row">
+                <div className="form-field">
+                  <label className="form-label">Height (cm) *</label>
+                  <input
+                    className="form-input"
+                    type="number"
+                    step="0.1"
+                    placeholder="e.g. 175"
+                    value={form.height}
+                    onChange={(e) => setForm({ ...form, height: e.target.value })}
+                    required
+                    min="1"
+                  />
+                </div>
+                <div className="form-field">
+                  <label className="form-label">Bodyweight (kg) *</label>
+                  <input
+                    className="form-input"
+                    type="number"
+                    step="0.1"
+                    placeholder="e.g. 70"
+                    value={form.weight}
+                    onChange={(e) => setForm({ ...form, weight: e.target.value })}
+                    required
+                    min="1"
                   />
                 </div>
               </div>
@@ -361,13 +400,43 @@ export default function MembersPage() {
                   />
                 </div>
                 <div className="form-field">
-                  <label className="form-label">Phone</label>
+                  <label className="form-label">Phone *</label>
                   <input
                     className="form-input"
                     type="tel"
-                    placeholder="+91 98765 43210"
+                    placeholder="10-digit number"
                     value={editForm.phone}
                     onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
+                    required
+                    minLength={10}
+                  />
+                </div>
+              </div>
+              <div className="form-row">
+                <div className="form-field">
+                  <label className="form-label">Height (cm) *</label>
+                  <input
+                    className="form-input"
+                    type="number"
+                    step="0.1"
+                    placeholder="e.g. 175"
+                    value={editForm.height}
+                    onChange={(e) => setEditForm({ ...editForm, height: e.target.value })}
+                    required
+                    min="1"
+                  />
+                </div>
+                <div className="form-field">
+                  <label className="form-label">Bodyweight (kg) *</label>
+                  <input
+                    className="form-input"
+                    type="number"
+                    step="0.1"
+                    placeholder="e.g. 70"
+                    value={editForm.weight}
+                    onChange={(e) => setEditForm({ ...editForm, weight: e.target.value })}
+                    required
+                    min="1"
                   />
                 </div>
               </div>
@@ -443,49 +512,53 @@ export default function MembersPage() {
             <p>{search ? "No members match your search." : 'No members yet. Click "Add Member" to get started.'}</p>
           </div>
         ) : (
-          <table className="table">
-            <thead>
-              <tr>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Phone</th>
-                <th>Gym</th>
-                <th>Status</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map((m) => (
-                <tr key={m.id}>
-                  <td>
-                    <div className="user-cell">
-                      <div className="avatar">
-                        {(m.profile?.name || m.email).charAt(0).toUpperCase()}
-                      </div>
-                      <span>{m.profile?.name || "â€”"}</span>
-                    </div>
-                  </td>
-                  <td className="muted">{m.email}</td>
-                  <td className="muted">{m.profile?.phone || "â€”"}</td>                  <td className="muted">{m.gymId ? (gyms.find(g => g.id === m.gymId)?.name ?? "—") : "—"}</td>                  <td>
-                    <span className={`badge ${STATUS_STYLES[m.status] || "badge-active"}`}>
-                      {m.status || "ACTIVE"}
-                    </span>
-                  </td>
-                  <td>
-                    {(user?.role === "ADMIN" || user?.role === "SUPER_ADMIN") && (
-                      <button className="btn-edit" onClick={() => openEdit(m)} title="Edit member">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                        </svg>
-                        Edit
-                      </button>
-                    )}
-                  </td>
+          <div className="table-container">
+            <table className="table">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Email</th>
+                  <th>Phone</th>
+                  <th>Gym</th>
+                  <th>Status</th>
+                  <th>Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {filtered.map((m) => (
+                  <tr key={m.id}>
+                    <td>
+                      <div className="user-cell">
+                        <div className="avatar">
+                          {(m.profile?.name || m.email).charAt(0).toUpperCase()}
+                        </div>
+                        <span>{m.profile?.name || "—"}</span>
+                      </div>
+                    </td>
+                    <td className="muted">{m.email}</td>
+                    <td className="muted">{m.profile?.phone || "—"}</td>
+                    <td className="muted">{m.gymId ? (gyms.find(g => g.id === m.gymId)?.name ?? "—") : "—"}</td>
+                    <td>
+                      <span className={`badge ${STATUS_STYLES[m.status] || "badge-active"}`}>
+                        {m.status || "ACTIVE"}
+                      </span>
+                    </td>
+                    <td>
+                      {(user?.role === "ADMIN" || user?.role === "SUPER_ADMIN") && (
+                        <button className="btn-edit" onClick={() => openEdit(m)} title="Edit member">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                          </svg>
+                          Edit
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
 
@@ -531,9 +604,10 @@ export default function MembersPage() {
         .selected-active { background: rgba(34,197,94,.12); border-color: rgba(34,197,94,.5); color: #4ade80; }
         .selected-frozen { background: rgba(59,130,246,.12); border-color: rgba(59,130,246,.5); color: #60a5fa; }
         .selected-suspended { background: rgba(239,68,68,.12); border-color: rgba(239,68,68,.5); color: #f87171; }
+        .table-container { overflow-x: auto; overflow-y: auto; max-height: calc(100vh - 220px); position: relative; }
         .card { background: rgba(24,24,27,.8); border: 1px solid rgba(255,255,255,.06); border-radius: 14px; overflow: hidden; }
-        .table { width: 100%; border-collapse: collapse; }
-        .table th { padding: 12px 16px; text-align: left; font-size: 11px; font-weight: 600; color: #71717a; text-transform: uppercase; letter-spacing: .05em; border-bottom: 1px solid rgba(255,255,255,.06); }
+        .table { width: 100%; border-collapse: separate; border-spacing: 0; min-width: 800px; }
+        .table th { position: sticky; top: 0; background: #1c1c1f; z-index: 10; padding: 12px 16px; text-align: left; font-size: 11px; font-weight: 600; color: #71717a; text-transform: uppercase; letter-spacing: .05em; border-bottom: 1px solid rgba(255,255,255,.06); }
         .table td { padding: 14px 16px; font-size: 13px; color: #d4d4d8; border-bottom: 1px solid rgba(255,255,255,.04); }
         .table tr:last-child td { border-bottom: none; }
         .table tr:hover td { background: rgba(255,255,255,.02); }

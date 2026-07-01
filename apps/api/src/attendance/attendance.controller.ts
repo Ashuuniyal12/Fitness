@@ -17,6 +17,26 @@ export class AttendanceController {
     return this.attendanceService.checkIn(userId, req.user.gymId);
   }
 
+  /** POST /attendance/generate-code — generate daily attendance code */
+  @Post('generate-code')
+  @Roles('SUPER_ADMIN', 'ADMIN', 'RECEPTIONIST')
+  async generateCode(@Req() req) {
+    return this.attendanceService.generateDailyCode(req.user.gymId);
+  }
+
+  /** GET /attendance/code — get current active daily code */
+  @Get('code')
+  async getCode(@Req() req) {
+    return this.attendanceService.getDailyCode(req.user.gymId);
+  }
+
+  /** POST /attendance/checkin-code — check-in with daily code */
+  @Post('checkin-code')
+  @Roles('SUPER_ADMIN', 'ADMIN', 'RECEPTIONIST', 'MEMBER')
+  async checkInWithCode(@Body() dto: { code: string }, @Req() req) {
+    return this.attendanceService.checkInWithCode(req.user.id, req.user.gymId, dto.code);
+  }
+
   /** POST /attendance/mark — admin marks attendance for a user on a date */
   @Post('mark')
   @Roles('SUPER_ADMIN', 'ADMIN', 'RECEPTIONIST')
